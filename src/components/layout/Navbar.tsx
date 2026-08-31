@@ -121,6 +121,14 @@ export default function Navbar() {
                   <User size={18} />
                   {user.name.split(" ")[0]}
                 </Link>
+                {user.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    className="rounded-full border border-rust px-3 py-1 text-sm font-medium text-rust hover:bg-rust hover:text-white"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="text-sm font-medium text-ink/80 hover:text-rust"
@@ -277,6 +285,17 @@ export default function Navbar() {
                     My Profile
                   </Link>
                 </li>
+                {user.role === "admin" && (
+                  <li>
+                    <Link
+                      href="/admin"
+                      className="text-sm font-medium text-rust hover:text-rust-dark"
+                      onClick={() => setOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <button
                     onClick={handleLogout}
