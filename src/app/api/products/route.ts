@@ -19,13 +19,21 @@ export async function GET(request: NextRequest) {
       query[key] = value;
     });
 
-    const baseQuery = Product.find({ isActive: true }).populate('category', 'name slug');
+    let includeInactive = false;
+    if (query.all === 'true') {
+      const auth = await getAuthUser(request);
+      includeInactive = !('error' in auth) && auth.user.role === 'admin';
+    }
+
+    const baseQuery = includeInactive
+      ? Product.find({}).populate('category', 'name slug')
+      : Product.find({ isActive: true }).populate('category', 'name slug');
 
     const features = new APIFeatures<IProduct>(baseQuery, query).search().filter().sort().paginate();
 
     const products = await features.query;
 
-    const totalFilters: Record<string, any> = { isActive: true };
+    const totalFilters: Record<string, any> = includeInactive ? {} : { isActive: true };
 
     if (query.category) {
       const categoryIds = query.category.split(',').map((id) => id.trim()).filter(Boolean);
