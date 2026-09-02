@@ -91,7 +91,7 @@ export default function ProductCard({ product }: { product: Product }) {
       href={`/products/${product.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-2xl border border-brass/20 bg-white transition-shadow hover:shadow-lg"
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-cream">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream">
         {mainImage ? (
           <Image
             src={mainImage}
@@ -128,9 +128,9 @@ export default function ProductCard({ product }: { product: Product }) {
           onClick={handleToggleWishlist}
           disabled={wishlisting}
           aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-ink/70 shadow-sm transition-colors hover:text-rust disabled:opacity-60"
+          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-ink/70 shadow-sm transition-colors hover:text-rust disabled:opacity-60"
         >
-          <Heart size={15} className={wishlisted ? "fill-rust text-rust" : ""} />
+          <Heart size={13} className={wishlisted ? "fill-rust text-rust" : ""} />
         </button>
 
         {product.stock === 0 && (
@@ -140,17 +140,17 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <p className="text-xs uppercase tracking-wide text-ink/50">
+      <div className="flex flex-1 flex-col p-3">
+        <p className="text-[11px] uppercase tracking-wide text-ink/50">
           {product.category?.name}
         </p>
-        <h3 className="mt-1 truncate font-medium text-ink">{product.name}</h3>
+        <h3 className="mt-0.5 truncate text-sm font-medium text-ink">{product.name}</h3>
 
-        <div className="mt-1.5 flex items-center gap-1">
+        <div className="mt-1 flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
               key={i}
-              size={13}
+              size={11}
               className={
                 i < Math.round(product.ratingsAverage)
                   ? "fill-brass text-brass"
@@ -164,7 +164,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className="text-xs text-ink/40">({product.numReviews})</span>
         </div>
 
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-1.5 flex items-center gap-2">
           {onSale ? (
             <>
               <span className="font-semibold text-rust">
@@ -184,23 +184,23 @@ export default function ProductCard({ product }: { product: Product }) {
           </p>
         )}
 
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-ink/50">
-          <Truck size={12} />
+        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink/50">
+          <Truck size={11} />
           Free Delivery
         </p>
 
-       <button
-  onClick={handleAddToCart}
-  disabled={adding || product.stock === 0}
-  className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-rust px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
->
-  {added ? <Check size={16} /> : <ShoppingCart size={16} />}
-  {product.stock === 0
-    ? "Out of stock"
-    : added
-    ? "Added"
-    : "Add to Cart"}
-</button>
+        <button
+          onClick={handleAddToCart}
+          disabled={adding || product.stock === 0}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-rust px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {added ? <Check size={14} /> : <ShoppingCart size={14} />}
+          {product.stock === 0
+            ? "Out of stock"
+            : added
+            ? "Added"
+            : "Add to Cart"}
+        </button>
       </div>
     </Link>
   );
