@@ -23,6 +23,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
     }
 
+    if (!user.isVerified) {
+      return NextResponse.json(
+        {
+          message: 'Please verify your email before logging in',
+          email: user.email,
+          needsVerification: true,
+        },
+        { status: 403 }
+      );
+    }
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET as string,
@@ -47,7 +58,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60, // 7 days, in seconds
+      maxAge: 7 * 24 * 60 * 60,
       path: '/',
     });
 

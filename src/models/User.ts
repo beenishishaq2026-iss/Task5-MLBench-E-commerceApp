@@ -6,7 +6,8 @@ export interface IUser extends Document {
   password: string;
   role: 'user' | 'admin';
   isVerified: boolean;
-  verificationToken?: string;
+  otp?: string;
+  otpExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,7 +29,7 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: 6,
+      minlength: 8,
       select: false,
     },
     role: {
@@ -40,15 +41,18 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
-    verificationToken: {
+    otp: {
       type: String,
+      select: false,
+    },
+    otpExpires: {
+      type: Date,
+      select: false,
     },
   },
   { timestamps: true }
 );
 
-// mongoose.models.User avoids "Cannot overwrite model once compiled" errors
-// that happen when Next.js hot-reloads this module in dev.
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 
 export default User;

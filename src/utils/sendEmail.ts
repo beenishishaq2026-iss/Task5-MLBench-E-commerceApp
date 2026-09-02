@@ -3,10 +3,13 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT),
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+  secure: Number(process.env.EMAIL_PORT) === 465,
+  // Mailpit (local dev) needs no auth. Mailtrap / real SMTP providers do.
+  // Only attach auth when EMAIL_USER is set, so this same code works
+  // against either just by changing env vars.
+  auth: process.env.EMAIL_USER
+    ? { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    : undefined,
 });
 
 interface SendEmailParams {
