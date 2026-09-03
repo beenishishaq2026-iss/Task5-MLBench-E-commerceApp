@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { GitBranch, Menu, X } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 
 const TABS = [
