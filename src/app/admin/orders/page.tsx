@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Order } from "@/types";
@@ -23,7 +23,12 @@ export default function AdminOrdersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-     async function loadOrders() {
+  useEffect(() => {
+    loadOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter]);
+
+  async function loadOrders() {
     setLoading(true);
     try {
       const url = `${API_URL}/api/orders${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`;
@@ -197,9 +202,8 @@ export default function AdminOrdersPage() {
                     const customer = typeof order.user === "object" ? order.user : null;
                     const isExpanded = expandedId === order._id;
                     return (
-                      <>
+                      <Fragment key={order._id}>
                         <tr
-                          key={order._id}
                           onClick={() => setExpandedId(isExpanded ? null : order._id)}
                           className="cursor-pointer border-b border-brass/10 last:border-0 hover:bg-cream/40"
                         >
@@ -269,7 +273,7 @@ export default function AdminOrdersPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })}
                 </tbody>
