@@ -18,8 +18,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ message: 'Order not found' }, { status: 404 });
     }
 
-    // make sure the order belongs to the person asking for it
-    // (unless they're an admin, who can see any order)
     if (order.user._id.toString() !== auth.user._id!.toString() && auth.user.role !== 'admin') {
       return NextResponse.json({ message: 'Not authorized to view this order' }, { status: 403 });
     }
@@ -50,6 +48,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const order = await Order.findById(id);
     if (!order) {
       return NextResponse.json({ message: 'Order not found' }, { status: 404 });
+    }
+
+    if (order.isPaid && status === 'pending') {
+      return NextResponse.json(
+        { message: 'This order is already paid and cannot be set back to pending' },
+        { status: 400 }
+      );
     }
 
     order.status = status;
