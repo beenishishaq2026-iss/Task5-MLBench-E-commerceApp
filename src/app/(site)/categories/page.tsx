@@ -167,12 +167,12 @@ export default function CategoriesPage() {
                 )}
               </div>
 
-              <div className="p-5">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-[family-name:var(--font-display)] text-xl italic text-ink">
+                           <div className="p-5">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                  <h3 className="font-[family-name:var(--font-display)] text-lg italic text-ink sm:text-xl">
                     {cat.name}
                   </h3>
-                  <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-rust">
+                  <span className="shrink-0 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-rust">
                     {cat.productCount ?? 0}{" "}
                     {cat.productCount === 1 ? "Product" : "Products"}
                   </span>

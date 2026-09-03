@@ -88,13 +88,12 @@ export default function AdminCategoriesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-semibold text-ink">Categories</h2>
-        <button onClick={openCreate} className="flex items-center gap-2 rounded-full bg-rust px-5 py-2 text-sm font-medium text-white hover:bg-rust-dark">
+        <button onClick={openCreate} className="flex w-fit items-center gap-2 rounded-full bg-rust px-5 py-2 text-sm font-medium text-white hover:bg-rust-dark">
           <Plus size={16} /> New Category
         </button>
       </div>
-
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border border-brass/30 bg-white p-6">
           <div className="flex items-center justify-between">
@@ -134,13 +133,14 @@ export default function AdminCategoriesPage() {
         </form>
       )}
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-brass/30 bg-white">
+      <div className="relative mt-6 overflow-hidden rounded-2xl border border-brass/30 bg-white">
         {loading ? (
           <p className="p-6 text-sm text-ink/60">Loading...</p>
         ) : categories.length === 0 ? (
           <p className="p-6 text-sm text-ink/60">No categories yet.</p>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="border-b border-brass/30 bg-cream/50 text-left text-ink/60">
               <tr>
                 <th className="px-4 py-3">Name</th>
@@ -167,6 +167,7 @@ export default function AdminCategoriesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
