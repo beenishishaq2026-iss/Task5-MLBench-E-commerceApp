@@ -55,3 +55,35 @@ export interface ProductFiltersMeta {
   minPrice: number;
   maxPrice: number;
 }
+
+
+export interface OrderItem {
+  product: string;
+  name: string;
+  image?: string;
+  price: number;
+  quantity: number;
+}
+
+export interface ShippingAddress {
+  fullName: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  phone: string;
+}
+
+export interface Order {
+  _id: string;
+  user: { _id: string; name: string; email: string } | string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress;
+  itemsPrice: number;
+  totalPrice: number;
+  status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
+  isPaid: boolean;
+  paidAt?: string;
+  paymentMethod: string;
+  createdAt: string;
+}

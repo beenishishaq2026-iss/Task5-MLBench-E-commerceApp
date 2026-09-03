@@ -27,7 +27,7 @@ export default function Pagination({
   const showAllNumbers = totalPages <= 7;
 
   return (
-    <div className="mt-10 flex items-center justify-center gap-2">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
       <button
         onClick={() => goToPage(currentPage - 1)}
         disabled={currentPage === 1}

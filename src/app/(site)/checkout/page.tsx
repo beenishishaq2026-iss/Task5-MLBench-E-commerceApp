@@ -60,11 +60,21 @@ export default function CheckoutPage() {
         throw new Error(data.message || "Could not place order");
       }
 
-      // cart was cleared on the backend once the order was created,
-      // refresh our local cart state so the navbar badge updates too
       await refreshCart();
 
-      router.push(`/orders/${data.order._id}`);
+      const orderId = data.order._id;
+
+      const checkoutRes = await fetch(`${API_URL}/api/payments/checkout/${orderId}`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const checkoutData = await checkoutRes.json();
+
+      if (!checkoutRes.ok || !checkoutData.url) {
+        throw new Error(checkoutData.message || "Could not start payment");
+      }
+
+      window.location.href = checkoutData.url;
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -189,11 +199,11 @@ export default function CheckoutPage() {
             disabled={placing}
             className="w-full rounded-full bg-rust px-6 py-3.5 text-sm font-semibold text-white hover:bg-rust-dark disabled:opacity-60"
           >
-            {placing ? "Placing order..." : "Place Order"}
+            {placing ? "Redirecting to payment..." : "Place Order & Pay"}
           </button>
 
           <p className="text-center text-xs text-ink/40">
-            Payment isn&apos;t wired up yet - this creates the order as pending.
+            You&apos;ll be redirected to Stripe to enter your card details securely.
           </p>
         </form>
 

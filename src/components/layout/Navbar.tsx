@@ -177,13 +177,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/*
-        Mega menu is positioned relative to <header> (full viewport width),
-        not the trigger <li>. Centering against the header instead of the
-        trigger means the panel's centered position + clamped width can
-        never overflow past the left/right edge of the screen, no matter
-        where "Categories" sits in the (now centered) nav row.
-      */}
       {categoriesOpen && categories.length > 0 && (
         <div
           onMouseEnter={() => setCategoriesOpen(true)}
