@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -28,17 +28,39 @@ interface Order {
   itemsPrice: number;
   totalPrice: number;
   status: string;
+  isPaid: boolean;
   createdAt: string;
 }
 
 export default function OrderConfirmationPage() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const paymentParam = searchParams.get("payment"); 
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [retrying, setRetrying] = useState(false);
+
+  async function handleRetryPayment() {
+    setRetrying(true);
+    try {
+      const res = await fetch(`${API_URL}/api/payments/checkout/${params.id}`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        throw new Error(data.message || "Could not start payment");
+      }
+      window.location.href = data.url;
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
+      setRetrying(false);
+    }
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -102,6 +124,35 @@ export default function OrderConfirmationPage() {
         Your order has been placed and is currently{" "}
         <span className="font-medium capitalize text-ink">{order.status}</span>.
       </p>
+
+      {paymentParam === "success" && order.isPaid && (
+        <div className="mt-6 rounded-xl border border-green-600/30 bg-green-600/10 px-4 py-3 text-sm text-green-800">
+          Payment received - thanks! Your order is confirmed.
+        </div>
+      )}
+
+      {paymentParam === "success" && !order.isPaid && (
+        <div className="mt-6 rounded-xl border border-brass/30 bg-brass/10 px-4 py-3 text-sm text-ink/70">
+          Payment is confirming - this can take a few seconds to reflect here. Refresh shortly if it doesn&apos;t update.
+        </div>
+      )}
+
+      {paymentParam === "cancelled" && !order.isPaid && (
+        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-rust/30 bg-rust/10 px-4 py-3 text-sm text-rust-dark sm:flex-row sm:items-center sm:justify-between">
+          <span>Payment was cancelled. Your order is saved as pending.</span>
+          <button
+            onClick={handleRetryPayment}
+            disabled={retrying}
+            className="shrink-0 rounded-full bg-rust px-4 py-2 text-xs font-semibold text-white hover:bg-rust-dark disabled:opacity-60"
+          >
+            {retrying ? "Redirecting..." : "Try payment again"}
+          </button>
+        </div>
+      )}
+
+      {errorMsg && paymentParam === "cancelled" && (
+        <p className="mt-2 text-xs text-rust">{errorMsg}</p>
+      )}
 
       <div className="mt-8 rounded-2xl border border-brass/20 bg-white p-6">
         <h2 className="font-medium text-ink">Items</h2>

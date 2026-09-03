@@ -167,7 +167,7 @@ export default function AdminOrdersPage() {
                             className="w-full rounded-lg border border-brass/30 px-3 py-2 text-sm focus:border-rust focus:outline-none disabled:opacity-60"
                           >
                             {STATUS_OPTIONS.map((s) => (
-                              <option key={s} value={s}>
+                              <option key={s} value={s} disabled={s === "pending" && order.isPaid}>
                                 {s.charAt(0).toUpperCase() + s.slice(1)}
                               </option>
                             ))}
@@ -224,7 +224,7 @@ export default function AdminOrdersPage() {
                               className={`rounded-full border-0 px-3 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rust/30 ${STATUS_COLORS[order.status]}`}
                             >
                               {STATUS_OPTIONS.map((s) => (
-                                <option key={s} value={s}>
+                                <option key={s} value={s} disabled={s === "pending" && order.isPaid}>
                                   {s.charAt(0).toUpperCase() + s.slice(1)}
                                 </option>
                               ))}
