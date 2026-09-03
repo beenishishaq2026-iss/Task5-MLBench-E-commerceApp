@@ -2,7 +2,46 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Order from '@/models/Order';
 import Cart from '@/models/Cart';
-import { getAuthUser } from '@/lib/auth';
+import { getAuthUser, forbidden } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+  try {
+    await connectDB();
+    const auth = await getAuthUser(request);
+    if ('error' in auth) return auth.error;
+    if (auth.user.role !== 'admin') return forbidden();
+
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
+
+    const filter: Record<string, any> = {};
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
+
+    const total = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    return NextResponse.json(
+      {
+        count: orders.length,
+        total,
+        page,
+        totalPages: Math.ceil(total / limit) || 1,
+        orders,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
