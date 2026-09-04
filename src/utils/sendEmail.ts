@@ -1,6 +1,14 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  secure: Number(process.env.EMAIL_PORT) === 465,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 interface SendEmailParams {
   to: string;
@@ -9,20 +17,19 @@ interface SendEmailParams {
 }
 
 const sendEmail = async ({ to, subject, html }: SendEmailParams) => {
-  const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'MLBench Ecommerce <onboarding@resend.dev>',
-    to,
-    subject,
-    html,
-  });
-
-  if (error) {
-    console.error('Error sending email:', error);
-    throw new Error(error.message || 'Email could not be sent');
+  try {
+    const info = await transporter.sendMail({
+      from: `"MLBench Ecommerce" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log('Email sent:', info.messageId, info.response);
+    return info;
+  } catch (error: any) {
+    console.error('Error sending email:', error.message);
+    throw new Error('Email could not be sent');
   }
-
-  console.log('Email sent:', data?.id);
-  return data;
 };
 
 export default sendEmail;
