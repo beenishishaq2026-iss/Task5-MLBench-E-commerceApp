@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Truck, RotateCcw, ShieldCheck } from "lucide-react";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import NewsletterForm from "@/components/layout/NewsletterForm";
 import ProductCard from "@/components/products/ProductCard";
 import { SERVER_API_URL } from "@/lib/api";
 import { ProductListResponse, Category } from "@/types";
@@ -226,34 +227,7 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-8 shadow-xl">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brass/20 text-brass">
-                  ✉
-                </span>
-                <h3 className="text-lg font-semibold text-ink">Subscribe</h3>
-              </div>
-
-              <form className="mt-6 space-y-4">
-                <input
-                  type="email"
-                  placeholder="Enter your email address"
-                  className="w-full rounded-full border border-brass/30 px-5 py-3 text-sm text-ink placeholder:text-ink/40 focus:border-rust focus:outline-none"
-                />
-               <button
-  type="submit"
-  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#963F22] px-6 py-3 text-sm font-semibold text-[#FFFFFF] transition-colors hover:bg-[#7a321b]"
->
-  Unlock Access
-  <span aria-hidden>→</span>
-</button>
-              </form>
-
-              <p className="mt-4 text-center text-xs text-ink/50">
-                By subscribing, you agree to our Terms of Service and Privacy
-                Policy. Unsubscribe anytime.
-              </p>
-            </div>
+            <NewsletterForm />
           </div>
         </div>
       </section>

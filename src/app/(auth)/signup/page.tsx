@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Check, X } from "lucide-react";
+import { Eye, EyeOff, Check } from "lucide-react";
 import { API_URL } from "@/lib/api";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -159,13 +159,33 @@ export default function SignupPage() {
               </div>
 
               {(touched.password || formData.password.length > 0) && (
-                <ul className="mt-2 space-y-1">
-                  <li className={`flex items-center gap-1.5 text-xs ${hasMinLength ? "text-green-700" : "text-ink/50"}`}>
-                    {hasMinLength ? <Check size={13} /> : <X size={13} />}
+                <ul className="mt-3 space-y-2">
+                  <li className={`flex items-center gap-2 text-xs ${hasMinLength ? "text-green-700" : "text-ink/50"}`}>
+                    <span
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
+                        hasMinLength ? "bg-green-600" : "bg-ink/10"
+                      }`}
+                    >
+                      {hasMinLength ? (
+                        <Check size={10} className="text-white" strokeWidth={3} />
+                      ) : (
+                        <span className="h-1.5 w-1.5 rounded-full bg-ink/30" />
+                      )}
+                    </span>
                     At least 8 characters
                   </li>
-                  <li className={`flex items-center gap-1.5 text-xs ${hasSpecialChar ? "text-green-700" : "text-ink/50"}`}>
-                    {hasSpecialChar ? <Check size={13} /> : <X size={13} />}
+                  <li className={`flex items-center gap-2 text-xs ${hasSpecialChar ? "text-green-700" : "text-ink/50"}`}>
+                    <span
+                      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
+                        hasSpecialChar ? "bg-green-600" : "bg-ink/10"
+                      }`}
+                    >
+                      {hasSpecialChar ? (
+                        <Check size={10} className="text-white" strokeWidth={3} />
+                      ) : (
+                        <span className="h-1.5 w-1.5 rounded-full bg-ink/30" />
+                      )}
+                    </span>
                     At least one special character (!@#$%...)
                   </li>
                 </ul>
