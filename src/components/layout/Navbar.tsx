@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Menu,
   X,
@@ -53,6 +53,7 @@ export default function Navbar() {
   const { itemCount } = useCart();
   const { products: wishlistProducts } = useWishlist();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     async function fetchCategories() {
@@ -93,21 +94,29 @@ export default function Navbar() {
           >
             <Link
               href="/categories"
-              className="text-sm font-medium text-ink/80 transition-colors hover:text-rust"
+              className={`text-sm font-medium transition-colors hover:text-rust ${
+                pathname.startsWith("/categories") ? "text-rust" : "text-ink/80"
+              }`}
             >
               Categories
             </Link>
           </li>
-          {navLinks.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className="text-sm font-medium text-ink/80 transition-colors hover:text-rust"
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
+          {navLinks.map((link) => {
+            const isAnchorLink = link.href.includes("#");
+            const isActive = !isAnchorLink && pathname === link.href;
+            return (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className={`text-sm font-medium transition-colors hover:text-rust ${
+                    isActive ? "text-rust" : "text-ink/80"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
         <div className="flex items-center gap-5 justify-self-end">
@@ -232,23 +241,31 @@ export default function Navbar() {
             <li>
               <Link
                 href="/categories"
-                className="text-sm font-medium text-ink/80 hover:text-rust"
+                className={`text-sm font-medium hover:text-rust ${
+                  pathname.startsWith("/categories") ? "text-rust" : "text-ink/80"
+                }`}
                 onClick={() => setOpen(false)}
               >
                 Categories
               </Link>
             </li>
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="text-sm font-medium text-ink/80 hover:text-rust"
-                  onClick={() => setOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+            {navLinks.map((link) => {
+              const isAnchorLink = link.href.includes("#");
+              const isActive = !isAnchorLink && pathname === link.href;
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={`text-sm font-medium hover:text-rust ${
+                      isActive ? "text-rust" : "text-ink/80"
+                    }`}
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
             <li>
               <Link
                 href="/wishlist"
