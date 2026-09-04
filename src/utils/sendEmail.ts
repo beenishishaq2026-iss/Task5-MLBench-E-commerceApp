@@ -19,7 +19,7 @@ interface SendEmailParams {
 const sendEmail = async ({ to, subject, html }: SendEmailParams) => {
   try {
     const info = await transporter.sendMail({
-      from: `"MLBench Ecommerce" <${process.env.EMAIL_USER}>`,
+      from: `"Beenish Ishaq E-Commerce" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
