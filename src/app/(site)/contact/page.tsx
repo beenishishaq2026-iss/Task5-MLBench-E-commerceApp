@@ -159,7 +159,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-rust disabled:opacity-60 sm:w-auto"
+                className="w-full rounded-full bg-rust px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-rust-dark disabled:opacity-60 sm:w-auto"
               >
                 {status === "loading" ? "Sending..." : "Send Message"}
               </button>
@@ -175,7 +175,7 @@ export default function ContactPage() {
                 </span>
                 <div>
                   <p className="text-sm font-medium text-ink">Email us</p>
-                  <p className="mt-1 text-sm text-ink/60">support@auric.com</p>
+                  <p className="mt-1 text-sm text-ink/60">auricsupport@gmail.com</p>
                 </div>
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function ContactPage() {
                 </span>
                 <div>
                   <p className="text-sm font-medium text-ink">Call us</p>
-                  <p className="mt-1 text-sm text-ink/60">+1 (555) 010-2938</p>
+                  <p className="mt-1 text-sm text-ink/60">+92 3234567</p>
                 </div>
               </div>
             </div>
@@ -200,8 +200,7 @@ export default function ContactPage() {
                 <div>
                   <p className="text-sm font-medium text-ink">Visit us</p>
                   <p className="mt-1 text-sm text-ink/60">
-                    128 Market Street, Suite 4<br />
-                    San Francisco, CA 94103
+                    Lahore, Pakistan
                   </p>
                 </div>
               </div>
