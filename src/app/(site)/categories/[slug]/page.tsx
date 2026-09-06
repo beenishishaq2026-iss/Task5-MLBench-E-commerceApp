@@ -6,6 +6,7 @@ import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { Category, Product } from "@/types";
 import ProductCard from "@/components/products/ProductCard";
+import LoadingState from "@/components/ui/LoadingState";
 
 export default function CategoryDetailPage() {
   const params = useParams<{ slug: string }>();
@@ -21,7 +22,6 @@ export default function CategoryDetailPage() {
       setErrorMsg("");
 
       try {
-        // first get the category itself by its slug
         const catRes = await fetch(`${API_URL}/api/categories/${params.slug}`);
         const catData = await catRes.json();
 
@@ -31,7 +31,6 @@ export default function CategoryDetailPage() {
 
         setCategory(catData.category);
 
-        // then get products that belong to this category's id
         const prodRes = await fetch(
           `${API_URL}/api/products?category=${catData.category._id}&limit=24`
         );
@@ -52,11 +51,7 @@ export default function CategoryDetailPage() {
   }, [params.slug]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Loading category...</p>
-      </div>
-    );
+    return <LoadingState message="Loading category..." />;
   }
 
   if (errorMsg || !category) {

@@ -11,6 +11,8 @@ import ProductSort from "@/components/products/ProductSort";
 import Pagination from "@/components/products/Pagination";
 import SearchBar from "@/components/products/SearchBar";
 import GridViewToggle, { GRID_COLUMN_CLASSES } from "@/components/products/GridViewToggle";
+import { Spinner } from "@/components/ui/LoadingState";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 function ProductsListing() {
   const router = useRouter();
@@ -27,14 +29,20 @@ function ProductsListing() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // keep the search box in sync if the URL changes elsewhere (e.g. clearing
-  // filters resets the pathname). Adjusted during render rather than in an
-  // effect, per React's guidance for syncing state to a changed prop/param.
   const [syncedSearch, setSyncedSearch] = useState(activeSearch);
   if (activeSearch !== syncedSearch) {
     setSyncedSearch(activeSearch);
     setSearchText(activeSearch);
   }
+
+  const debouncedSearchText = useDebouncedValue(searchText, 400);
+
+  useEffect(() => {
+    if (debouncedSearchText !== activeSearch) {
+      updateSearchParam(debouncedSearchText);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearchText]);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -148,7 +156,7 @@ function ProductsListing() {
 
           {loading && (
             <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-brass/20 bg-white text-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-brass/30 border-t-rust" />
+              <Spinner />
               <p className="text-sm text-ink/50">Loading products...</p>
             </div>
           )}

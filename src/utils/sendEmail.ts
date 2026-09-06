@@ -19,7 +19,7 @@ interface SendEmailParams {
 const sendEmail = async ({ to, subject, html }: SendEmailParams) => {
   try {
     const info = await transporter.sendMail({
-      from: `"Beenish Ishaq E-Commerce" <${process.env.EMAIL_USER}>`,
+      from: `"Auric Support" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,

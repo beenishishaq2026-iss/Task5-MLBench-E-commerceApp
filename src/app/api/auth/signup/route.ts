@@ -47,10 +47,13 @@ export async function POST(request: NextRequest) {
         to: user.email,
         subject: 'Verify your email - OTP Code',
         html: `
-          <h2>Welcome, ${user.name}!</h2>
-          <p>Your email verification code is:</p>
-          <h1 style="letter-spacing: 4px;">${otp}</h1>
-          <p>This code expires in 10 minutes. If you didn't create this account, ignore this email.</p>
+          <div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; color: #2b2420;">
+            <h2 style="margin-bottom: 4px;">Welcome, ${user.name}!</h2>
+            <p>Thanks for creating an Auric account. Use the code below to verify your email. This code expires in 10 minutes.</p>
+            <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px; text-align: center; margin: 24px 0; color: #b5502f;">${otp}</p>
+            <p>If you didn't create this account, you can safely ignore this email.</p>
+            <p style="margin-top: 32px; color: #8a7f74; font-size: 12px;">Auric</p>
+          </div>
         `,
       });
     } catch (emailError: any) {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Pencil, Trash2, Plus, X } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Product, Category } from "@/types";
+import { Spinner } from "@/components/ui/LoadingState";
 
 const emptyForm = {
   name: "", description: "", price: "", discountPrice: "",
@@ -202,7 +203,9 @@ export default function AdminProductsPage() {
 
             <div className="relative mt-6 overflow-hidden rounded-2xl border border-brass/30 bg-white">
         {loading ? (
-          <p className="p-6 text-sm text-ink/60">Loading...</p>
+          <div className="flex items-center justify-center p-10">
+            <Spinner />
+          </div>
         ) : products.length === 0 ? (
           <p className="p-6 text-sm text-ink/60">No products yet.</p>
         ) : (

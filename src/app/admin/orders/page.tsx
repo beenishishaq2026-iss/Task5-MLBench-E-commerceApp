@@ -4,6 +4,7 @@ import { useEffect, useState, Fragment } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Order } from "@/types";
+import { Spinner } from "@/components/ui/LoadingState";
 
 const STATUS_OPTIONS = ["pending", "paid", "shipped", "delivered", "cancelled"] as const;
 
@@ -98,7 +99,9 @@ export default function AdminOrdersPage() {
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-brass/30 bg-white">
         {loading ? (
-          <p className="p-6 text-sm text-ink/60">Loading...</p>
+          <div className="flex items-center justify-center p-10">
+            <Spinner />
+          </div>
         ) : orders.length === 0 ? (
           <p className="p-6 text-sm text-ink/60">No orders yet.</p>
         ) : (

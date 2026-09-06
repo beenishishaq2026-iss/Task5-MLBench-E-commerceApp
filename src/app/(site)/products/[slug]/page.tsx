@@ -9,6 +9,7 @@ import { Product } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import LoadingState from "@/components/ui/LoadingState";
 
 export default function ProductDetailsPage() {
   const params = useParams<{ slug: string }>();
@@ -54,11 +55,7 @@ export default function ProductDetailsPage() {
   }, [params.slug]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Loading product...</p>
-      </div>
-    );
+    return <LoadingState message="Loading product..." />;
   }
 
   if (errorMsg || !product) {

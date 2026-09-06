@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import LoadingState from "@/components/ui/LoadingState";
 
 export default function ProfilePage() {
   const { user, loading, logout } = useAuth();
@@ -20,11 +21,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Loading your profile...</p>
-      </div>
-    );
+    return <LoadingState message="Loading your profile..." />;
   }
 
   if (!user) {

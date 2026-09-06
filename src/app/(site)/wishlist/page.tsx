@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useWishlist } from "@/context/WishlistContext";
 import ProductCard from "@/components/products/ProductCard";
+import LoadingState from "@/components/ui/LoadingState";
 
 export default function WishlistPage() {
   const { user, loading: authLoading } = useAuth();
@@ -19,11 +20,7 @@ export default function WishlistPage() {
   }, [authLoading, user, router]);
 
   if (authLoading || loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Loading your wishlist...</p>
-      </div>
-    );
+    return <LoadingState message="Loading your wishlist..." />;
   }
 
   if (!user) {

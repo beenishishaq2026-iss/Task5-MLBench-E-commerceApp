@@ -31,10 +31,12 @@ export async function POST(request: NextRequest) {
       to: user.email,
       subject: 'Your new verification code',
       html: `
-        <h2>Hi ${user.name},</h2>
-        <p>Your new verification code is:</p>
-        <h1 style="letter-spacing: 4px;">${otp}</h1>
-        <p>This code expires in 10 minutes.</p>
+        <div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; color: #2b2420;">
+          <h2 style="margin-bottom: 4px;">Hi ${user.name},</h2>
+          <p>Here's your new verification code. This code expires in 10 minutes.</p>
+          <p style="font-size: 32px; font-weight: 700; letter-spacing: 8px; text-align: center; margin: 24px 0; color: #b5502f;">${otp}</p>
+          <p style="margin-top: 32px; color: #8a7f74; font-size: 12px;">Auric</p>
+        </div>
       `,
     });
 
@@ -42,4 +44,4 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
   }
-}
+}s
