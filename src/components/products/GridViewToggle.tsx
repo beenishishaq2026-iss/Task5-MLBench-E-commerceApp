@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Columns2, Columns3, Columns4 } from "lucide-react";
 
 export const GRID_COLUMN_CLASSES: Record<number, string> = {
@@ -20,6 +21,22 @@ interface GridViewToggleProps {
 }
 
 export default function GridViewToggle({ value, onChange }: GridViewToggleProps) {
+ 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+
+    const enforceMobileDefault = () => {
+      if (mediaQuery.matches && value >= 3) {
+        onChange(2);
+      }
+    };
+
+    enforceMobileDefault();
+    mediaQuery.addEventListener("change", enforceMobileDefault);
+    return () => mediaQuery.removeEventListener("change", enforceMobileDefault);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   return (
     <div className="flex shrink-0 items-center gap-1 rounded-full border border-brass/30 bg-white p-1">
       {options.map(({ cols, icon: Icon, label }) => (
@@ -31,6 +48,7 @@ export default function GridViewToggle({ value, onChange }: GridViewToggleProps)
           aria-pressed={value === cols}
           className={
             "flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
+            (cols >= 3 ? "hidden sm:flex " : "") +
             (value === cols
               ? "bg-ink text-cream"
               : "text-ink/50 hover:text-rust")

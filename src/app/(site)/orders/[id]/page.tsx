@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import LoadingState from "@/components/ui/LoadingState";
 
 interface OrderItem {
   product: string;
@@ -94,11 +95,7 @@ export default function OrderConfirmationPage() {
   }, [params.id, user]);
 
   if (authLoading || loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Loading order...</p>
-      </div>
-    );
+    return <LoadingState message="Loading order..." />;
   }
 
   if (errorMsg || !order) {

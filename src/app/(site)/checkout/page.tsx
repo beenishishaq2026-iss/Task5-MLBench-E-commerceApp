@@ -6,6 +6,7 @@ import Link from "next/link";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import LoadingState from "@/components/ui/LoadingState";
 
 interface ShippingForm {
   fullName: string;
@@ -83,11 +84,7 @@ export default function CheckoutPage() {
   }
 
   if (authLoading || cartLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Loading checkout...</p>
-      </div>
-    );
+    return <LoadingState message="Loading checkout..." />;
   }
 
   if (!user) {
@@ -207,7 +204,6 @@ export default function CheckoutPage() {
           </p>
         </form>
 
-        {/* order summary */}
         <div className="h-fit rounded-2xl border border-brass/20 bg-white p-6">
           <h2 className="font-medium text-ink">Order Summary</h2>
 

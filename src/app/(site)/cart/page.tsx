@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import LoadingState from "@/components/ui/LoadingState";
 
 export default function CartPage() {
   const { user, loading: authLoading } = useAuth();
@@ -19,11 +20,7 @@ export default function CartPage() {
   }, [authLoading, user, router]);
 
   if (authLoading || loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-sm text-ink/60">Loading your cart...</p>
-      </div>
-    );
+    return <LoadingState message="Loading your cart..." />;
   }
 
   if (!user) {

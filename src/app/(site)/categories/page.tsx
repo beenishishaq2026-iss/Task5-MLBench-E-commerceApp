@@ -8,6 +8,8 @@ import { API_URL } from "@/lib/api";
 import { Category } from "@/types";
 import SearchBar from "@/components/products/SearchBar";
 import GridViewToggle, { GRID_COLUMN_CLASSES } from "@/components/products/GridViewToggle";
+import { Spinner } from "@/components/ui/LoadingState";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -16,6 +18,14 @@ export default function CategoriesPage() {
   const [searchText, setSearchText] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [gridCols, setGridCols] = useState(3);
+
+  // debounce the raw input so we only re-filter once typing pauses,
+  // instead of on every keystroke
+  const debouncedSearchText = useDebouncedValue(searchText, 350);
+
+  useEffect(() => {
+    setActiveSearch(debouncedSearchText);
+  }, [debouncedSearchText]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -110,7 +120,7 @@ export default function CategoriesPage() {
 
       {loading && (
         <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-brass/20 bg-white text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brass/30 border-t-rust" />
+          <Spinner />
           <p className="text-sm text-ink/50">Loading categories...</p>
         </div>
       )}
