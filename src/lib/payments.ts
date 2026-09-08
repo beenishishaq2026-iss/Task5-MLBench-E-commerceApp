@@ -1,16 +1,3 @@
-// Ported 1:1 from the old backend's controllers/paymentController.js.
-//
-// IMPORTANT: in the old Express app this controller existed but was never
-// mounted (there was no paymentRoutes.js and app.js never did
-// `app.use('/api/payments', ...)`), so it was 100% dead/unreachable code -
-// checkout only ever hit POST /api/orders. To preserve that exact behavior,
-// this file is intentionally NOT wired up as a Route Handler under
-// src/app/api/. It's kept here, present but dormant, so the Stripe logic is
-// available to wire up later (e.g. by adding
-// src/app/api/payments/checkout/[orderId]/route.ts that calls
-// createCheckoutSession, and src/app/api/payments/webhook/route.ts that
-// calls handleStripeWebhookEvent) without changing today's behavior.
-
 import stripe from '@/lib/stripe';
 import Order from '@/models/Order';
 import type Stripe from 'stripe';
@@ -36,7 +23,7 @@ export async function createCheckoutSession(orderId: string, userId: string) {
     price_data: {
       currency: 'usd',
       product_data: { name: item.name },
-      unit_amount: Math.round(item.price * 100), // stripe wants cents
+      unit_amount: Math.round(item.price * 100), 
     },
     quantity: item.quantity,
   }));

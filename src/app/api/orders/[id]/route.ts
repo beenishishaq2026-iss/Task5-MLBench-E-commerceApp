@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Order from '@/models/Order';
+import Product from '@/models/Product';
 import { getAuthUser, forbidden } from '@/lib/auth';
 
 const VALID_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
@@ -57,11 +58,25 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
+    const wasCancelled = order.status === 'cancelled';
     order.status = status;
     if (status === 'paid' && !order.isPaid) {
       order.isPaid = true;
       order.paidAt = new Date();
     }
+
+    // Restore stock when an order is cancelled, and re-deduct it if a
+    // cancelled order is ever reinstated to an active status.
+    if (status === 'cancelled' && !wasCancelled) {
+      for (const item of order.items as any) {
+        await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
+      }
+    } else if (wasCancelled && status !== 'cancelled') {
+      for (const item of order.items as any) {
+        await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } });
+      }
+    }
+
     await order.save();
 
     return NextResponse.json({ message: 'Order status updated', order }, { status: 200 });

@@ -37,7 +37,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const isNew =
     !!product.createdAt &&
-    Date.now() - new Date(product.createdAt).getTime() 
+    Date.now() - new Date(product.createdAt).getTime() <
       NEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
   const wishlisted = isInWishlist(product._id);

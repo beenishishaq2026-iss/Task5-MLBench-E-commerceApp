@@ -1,11 +1,5 @@
-// Replaces the old multer-based `middleware/uploadMiddleware.js`. Route
-// Handlers parse `multipart/form-data` natively via `request.formData()`,
-// so instead of Express middleware this is a couple of small helpers that
-// pull File(s) out of a FormData object and apply the exact same validation
-// multer used to (image mimetype/extension, 5MB limit).
-
 const ALLOWED_EXTENSION_PATTERN = /\.(jpeg|jpg|png|webp)$/i;
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB, same as the old multer limit
+const MAX_FILE_SIZE = 5 * 1024 * 1024; 
 
 export interface ParsedFile {
   buffer: Buffer;

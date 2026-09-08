@@ -34,7 +34,6 @@ export default function GridViewToggle({ value, onChange }: GridViewToggleProps)
     enforceMobileDefault();
     mediaQuery.addEventListener("change", enforceMobileDefault);
     return () => mediaQuery.removeEventListener("change", enforceMobileDefault);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   return (

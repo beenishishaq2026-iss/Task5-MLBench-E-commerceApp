@@ -11,6 +11,7 @@ import ProductSort from "@/components/products/ProductSort";
 import Pagination from "@/components/products/Pagination";
 import SearchBar from "@/components/products/SearchBar";
 import GridViewToggle, { GRID_COLUMN_CLASSES } from "@/components/products/GridViewToggle";
+import EmptyCartIllustration from "@/components/illustrations/EmptyCartIllustration";
 import { Spinner } from "@/components/ui/LoadingState";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
@@ -41,7 +42,7 @@ function ProductsListing() {
     if (debouncedSearchText !== activeSearch) {
       updateSearchParam(debouncedSearchText);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [debouncedSearchText]);
 
   useEffect(() => {
@@ -151,7 +152,6 @@ function ProductsListing() {
             </div>
           </div>
 
-          {/* light divider between the count/sort row and the product grid */}
           <div className="mb-6 h-px w-full bg-brass/20" />
 
           {loading && (
@@ -162,9 +162,11 @@ function ProductsListing() {
           )}
 
           {errorMsg && (
-            <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-rust/20 bg-white px-6 text-center">
-              <TriangleAlert size={28} className="text-rust" />
-              <p className="text-sm font-medium text-ink">
+            <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-3xl border border-rust/20 bg-white px-6 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rust/10">
+                <TriangleAlert size={24} className="text-rust" />
+              </div>
+              <p className="font-[family-name:var(--font-display)] text-xl italic text-ink">
                 Something went wrong
               </p>
               <p className="max-w-xs text-sm text-ink/50">{errorMsg}</p>
@@ -172,18 +174,27 @@ function ProductsListing() {
           )}
 
           {!loading && !errorMsg && productData && productData.products.length === 0 && (
-            <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-brass/30 bg-white px-6 text-center">
-              {activeSearch ? (
-                <SearchX size={28} className="text-ink/30" />
-              ) : (
-                <PackageX size={28} className="text-ink/30" />
-              )}
-              <p className="text-sm font-medium text-ink">
-                No products match your filters
-              </p>
-              <p className="max-w-xs text-sm text-ink/50">
-                Try clearing a filter or searching for something else.
-              </p>
+            <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-3xl border border-brass/20 bg-gradient-to-b from-cream/70 to-white px-6 text-center">
+              <EmptyCartIllustration className="h-40 w-40" />
+              <div>
+                <p className="font-[family-name:var(--font-display)] text-2xl italic text-ink">
+                  No products found
+                </p>
+                <p className="mx-auto mt-2 max-w-xs text-sm text-ink/50">
+                  {activeSearch
+                    ? `We couldn't find anything matching "${activeSearch}". Try a different search or clear your filters.`
+                    : "Try clearing a filter or searching for something else."}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSearchText("");
+                  router.push(pathname);
+                }}
+                className="mt-1 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-rust"
+              >
+                Clear filters &amp; search
+              </button>
             </div>
           )}
 
