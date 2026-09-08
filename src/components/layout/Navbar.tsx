@@ -27,7 +27,7 @@ import { Category } from "@/types";
 
 const navLinks = [
   { label: "Products", href: "/products" },
-  { label: "Deals", href: "/#deals" },
+  { label: "Featured", href: "/#deals" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -89,6 +89,7 @@ export default function Navbar() {
         {/* centered nav links */}
         <ul className="hidden items-center justify-center gap-8 md:flex">
           <li
+            className="relative"
             onMouseEnter={() => setCategoriesOpen(true)}
             onMouseLeave={() => setCategoriesOpen(false)}
           >
@@ -100,6 +101,51 @@ export default function Navbar() {
             >
               Categories
             </Link>
+
+            {categoriesOpen && categories.length > 0 && (
+              <div className="absolute left-0 top-full z-40 hidden w-[min(92vw,42rem)] pt-3 md:block">
+                <div className="rounded-2xl border border-brass/20 bg-white p-6 shadow-xl">
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rust">
+                      Explore Categories
+                    </p>
+                    <Link
+                      href="/categories"
+                      className="flex items-center gap-1 text-xs font-medium text-ink/60 hover:text-rust"
+                    >
+                      View All Categories
+                      <ArrowRight size={12} />
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {categories.map((cat) => {
+                      const Icon = getCategoryIcon(cat.name);
+                      return (
+                        <Link
+                          key={cat._id}
+                          href={`/products?category=${cat._id}`}
+                          className="group flex items-start gap-3 rounded-xl p-2 transition-colors hover:bg-cream"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-rust group-hover:bg-rust group-hover:text-cream">
+                            <Icon size={16} />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium text-ink">
+                              {cat.name}
+                            </span>
+                            <span className="block text-xs font-medium text-ink/40">
+                              {cat.productCount ?? 0}{" "}
+                              {cat.productCount === 1 ? "Product" : "Products"}
+                            </span>
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
           </li>
           {navLinks.map((link) => {
             const isAnchorLink = link.href.includes("#");
@@ -185,55 +231,6 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
-
-      {categoriesOpen && categories.length > 0 && (
-        <div
-          onMouseEnter={() => setCategoriesOpen(true)}
-          onMouseLeave={() => setCategoriesOpen(false)}
-          className="absolute left-1/2 top-full z-40 hidden w-[min(92vw,42rem)] -translate-x-1/2 pt-2 md:block"
-        >
-          <div className="rounded-2xl border border-brass/20 bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rust">
-                Explore Categories
-              </p>
-              <Link
-                href="/categories"
-                className="flex items-center gap-1 text-xs font-medium text-ink/60 hover:text-rust"
-              >
-                View All Categories
-                <ArrowRight size={12} />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {categories.map((cat) => {
-                const Icon = getCategoryIcon(cat.name);
-                return (
-                  <Link
-                    key={cat._id}
-                    href={`/categories/${cat.slug}`}
-                    className="group flex items-start gap-3 rounded-xl p-2 transition-colors hover:bg-cream"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-rust group-hover:bg-rust group-hover:text-cream">
-                      <Icon size={16} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-ink">
-                        {cat.name}
-                      </span>
-                      <span className="block text-xs font-medium text-ink/40">
-                        {cat.productCount ?? 0}{" "}
-                        {cat.productCount === 1 ? "Product" : "Products"}
-                      </span>
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       {open && (
         <div className="border-t border-brass/30 bg-cream px-6 pb-6 md:hidden">

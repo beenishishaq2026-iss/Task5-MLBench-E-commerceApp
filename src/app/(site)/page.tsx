@@ -77,7 +77,7 @@ export default async function Home() {
                 href="/#deals"
                 className="rounded-full border border-ink/20 px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-rust hover:text-rust"
               >
-                View Deals
+                View Featured
               </Link>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default async function Home() {
             {categories.map((cat) => (
               <Link
                 key={cat._id}
-                href={`/categories/${cat.slug}`}
+                href={`/products?category=${cat._id}`}
                 className="group overflow-hidden rounded-2xl border border-brass/30 bg-white transition-all hover:border-rust hover:shadow-md"
               >
                 <div className="h-28 w-full overflow-hidden bg-cream">

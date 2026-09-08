@@ -44,14 +44,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
     }
 
+    if (!product.isActive) {
+      return NextResponse.json({ message: 'This product is no longer available' }, { status: 400 });
+    }
+
+    if (product.stock <= 0) {
+      return NextResponse.json({ message: 'No more products available in stock' }, { status: 400 });
+    }
+
     const qtyToAdd = quantity && quantity > 0 ? quantity : 1;
 
     const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
 
     const existingItem = cart.items.find((item) => item.product.toString() === productId);
 
+    const alreadyInCart = existingItem ? existingItem.quantity : 0;
+    const requestedTotal = alreadyInCart + qtyToAdd;
+
+    if (requestedTotal > product.stock) {
+      const canStillAdd = product.stock - alreadyInCart;
+      if (canStillAdd <= 0) {
+        return NextResponse.json(
+          {
+            message: `No more products available. You already have the maximum stock (${product.stock}) of "${product.name}" in your cart.`,
+          },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json(
+        {
+          message: `Only ${product.stock} unit(s) of "${product.name}" are available in stock. You can add up to ${canStillAdd} more.`,
+        },
+        { status: 400 }
+      );
+    }
+
     if (existingItem) {
-      existingItem.quantity += qtyToAdd;
+      existingItem.quantity = requestedTotal;
     } else {
       cart.items.push({ product: productId, quantity: qtyToAdd } as any);
     }

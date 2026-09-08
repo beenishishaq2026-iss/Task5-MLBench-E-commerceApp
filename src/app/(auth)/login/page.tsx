@@ -25,7 +25,12 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      const loggedInUser = await login(formData.email, formData.password);
+
+      if (loggedInUser.role === "admin") {
+        router.push("/admin");
+        return;
+      }
 
       const redirectTo = searchParams.get("redirect") || "/";
       router.push(redirectTo);

@@ -102,6 +102,9 @@ export default function CheckoutPage() {
     );
   }
 
+  const stockIssues = items.filter((item) => item.quantity > item.product.stock);
+  const hasStockIssue = stockIssues.length > 0;
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
       <h1 className="font-[family-name:var(--font-display)] text-4xl italic text-ink">
@@ -114,6 +117,23 @@ export default function CheckoutPage() {
           {errorMsg && (
             <div className="rounded-xl border border-rust/30 bg-rust/10 px-4 py-3 text-sm text-rust-dark">
               {errorMsg}
+            </div>
+          )}
+
+          {hasStockIssue && (
+            <div className="rounded-xl border border-rust/30 bg-rust/10 px-4 py-3 text-sm text-rust-dark">
+              No more products available in stock for:{" "}
+              {stockIssues
+                .map(
+                  (item) =>
+                    `"${item.product.name}" (only ${item.product.stock} left, ${item.quantity} in cart)`
+                )
+                .join(", ")}
+              . Please{" "}
+              <Link href="/cart" className="underline">
+                go back to your cart
+              </Link>{" "}
+              and adjust quantities.
             </div>
           )}
 
@@ -193,8 +213,8 @@ export default function CheckoutPage() {
 
           <button
             type="submit"
-            disabled={placing}
-            className="w-full rounded-full bg-rust px-6 py-3.5 text-sm font-semibold text-white hover:bg-rust-dark disabled:opacity-60"
+            disabled={placing || hasStockIssue}
+            className="w-full rounded-full bg-rust px-6 py-3.5 text-sm font-semibold text-white hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             {placing ? "Redirecting to payment..." : "Place Order & Pay"}
           </button>

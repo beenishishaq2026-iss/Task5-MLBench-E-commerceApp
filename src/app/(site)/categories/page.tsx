@@ -158,7 +158,7 @@ export default function CategoriesPage() {
           {filteredCategories.map((cat) => (
             <Link
               key={cat._id}
-              href={`/categories/${cat.slug}`}
+              href={`/products?category=${cat._id}`}
               className="group overflow-hidden rounded-2xl border border-brass/20 bg-white transition-shadow hover:shadow-lg"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream">
