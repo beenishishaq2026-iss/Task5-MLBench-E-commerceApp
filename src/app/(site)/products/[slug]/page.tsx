@@ -93,7 +93,11 @@ export default function ProductDetailsPage() {
   const mainImage = product.images[activeImageIndex]?.url;
   const inWishlist = isInWishlist(product._id);
 
+  // FIX (TS18047): these are separate nested function declarations, so
+  // TypeScript does not carry the `!product` narrowing from the early
+  // return above into their bodies. Each one needs its own guard.
   function increaseQty() {
+    if (!product) return;
     if (quantity < product.stock) {
       setQuantity((prev) => prev + 1);
     }
@@ -106,6 +110,8 @@ export default function ProductDetailsPage() {
   }
 
   async function handleAddToCart() {
+    if (!product) return;
+
     if (!user) {
       router.push(`/login?redirect=/products/${params.slug}`);
       return;
@@ -129,6 +135,8 @@ export default function ProductDetailsPage() {
   }
 
   async function handleToggleWishlist() {
+    if (!product) return;
+
     if (!user) {
       router.push(`/login?redirect=/products/${params.slug}`);
       return;
@@ -290,8 +298,13 @@ export default function ProductDetailsPage() {
           {/* Product details */}
           <div className="mt-8 border-t border-brass/20">
 
+            {/* FIX (TS2322): removed the `"x" in product` checks — now
+               that Product declares these fields as optional strings in
+               src/types/index.ts, a plain truthy check is enough and
+               types correctly. */}
+
             {/* Material */}
-            {"material" in product && product.material && (
+            {product.material && (
               <div className="flex items-center justify-between border-b border-brass/20 py-4">
                 <span className="text-sm text-ink/50">
                   Material
@@ -304,7 +317,7 @@ export default function ProductDetailsPage() {
             )}
 
             {/* Fit */}
-            {"fit" in product && product.fit && (
+            {product.fit && (
               <div className="flex items-center justify-between border-b border-brass/20 py-4">
                 <span className="text-sm text-ink/50">
                   Fit
@@ -317,22 +330,20 @@ export default function ProductDetailsPage() {
             )}
 
             {/* Sizes */}
-            {"sizes" in product && product.sizes && (
+            {product.sizes && (
               <div className="flex items-center justify-between border-b border-brass/20 py-4">
                 <span className="text-sm text-ink/50">
                   Sizes
                 </span>
 
                 <span className="text-sm font-semibold text-ink">
-                  {Array.isArray(product.sizes)
-                    ? product.sizes.join(" – ")
-                    : product.sizes}
+                  {product.sizes}
                 </span>
               </div>
             )}
 
             {/* Care */}
-            {"care" in product && product.care && (
+            {product.care && (
               <div className="flex items-center justify-between border-b border-brass/20 py-4">
                 <span className="text-sm text-ink/50">
                   Care

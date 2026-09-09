@@ -1,4 +1,3 @@
-
 export interface CategoryRef {
   _id: string;
   name: string;
@@ -40,6 +39,10 @@ export interface Product {
   isFeatured: boolean;
   isActive: boolean;
   createdAt?: string;
+  material?: string;
+  fit?: string;
+  sizes?: string;
+  care?: string;
 }
 
 export interface ProductListResponse {
