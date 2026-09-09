@@ -33,7 +33,18 @@ export async function POST(request: NextRequest) {
     sendEmail({
       to: normalizedEmail,
       subject: 'Welcome to the Auric Collective',
-      html: `<p>Thanks for subscribing! You'll be the first to hear about new arrivals, seasonal curations, and exclusive discounts.</p>`,
+      html: `
+        <div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; color: #2b2420;">
+          <h2 style="margin-bottom: 4px;">Welcome to the Auric Collective</h2>
+          <p>Thanks for subscribing! You'll be the first to hear about new arrivals, seasonal curations, and exclusive discounts.</p>
+          <div style="background: #f7f3ee; border-radius: 10px; padding: 16px 18px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px; line-height: 1.6;">
+              We'll only email you when it's worth your time — new drops, seasonal edits, and members-only offers.
+            </p>
+          </div>
+          <p style="margin-top: 32px; color: #8a7f74; font-size: 12px;">Auric</p>
+        </div>
+      `,
     }).catch((err) => console.error('Newsletter welcome email failed:', err.message));
 
     return NextResponse.json({ message: 'Subscribed successfully. Welcome to the collective!' }, { status: 201 });

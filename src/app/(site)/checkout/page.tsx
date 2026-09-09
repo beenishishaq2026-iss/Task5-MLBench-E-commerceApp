@@ -31,6 +31,7 @@ export default function CheckoutPage() {
     phone: "",
   });
   const [placing, setPlacing] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -61,7 +62,11 @@ export default function CheckoutPage() {
         throw new Error(data.message || "Could not place order");
       }
 
-      await refreshCart();
+      // Order was created successfully and the cart has been cleared
+      // server-side. Mark this locally BEFORE refreshing cart state, so
+      // this page never falls back to the "empty cart" view while we're
+      // still redirecting to Stripe.
+      setOrderPlaced(true);
 
       const orderId = data.order._id;
 
@@ -75,8 +80,14 @@ export default function CheckoutPage() {
         throw new Error(checkoutData.message || "Could not start payment");
       }
 
+      // Sync the (now-empty) cart in the background — no need to await
+      // this before redirecting, and it won't affect this page's render
+      // since orderPlaced already guards the empty-cart view.
+      refreshCart();
+
       window.location.href = checkoutData.url;
     } catch (err) {
+      setOrderPlaced(false);
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setPlacing(false);
@@ -91,7 +102,7 @@ export default function CheckoutPage() {
     return null;
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !orderPlaced) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
         <p className="text-ink/60">Your cart is empty, nothing to check out.</p>
@@ -101,6 +112,13 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
+  if (orderPlaced) {
+    return <LoadingState message="Redirecting to payment..." />;
+  }
+
+  const stockIssues = items.filter((item) => item.quantity > item.product.stock);
+  const hasStockIssue = stockIssues.length > 0;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
@@ -114,6 +132,23 @@ export default function CheckoutPage() {
           {errorMsg && (
             <div className="rounded-xl border border-rust/30 bg-rust/10 px-4 py-3 text-sm text-rust-dark">
               {errorMsg}
+            </div>
+          )}
+
+          {hasStockIssue && (
+            <div className="rounded-xl border border-rust/30 bg-rust/10 px-4 py-3 text-sm text-rust-dark">
+              No more products available in stock for:{" "}
+              {stockIssues
+                .map(
+                  (item) =>
+                    `"${item.product.name}" (only ${item.product.stock} left, ${item.quantity} in cart)`
+                )
+                .join(", ")}
+              . Please{" "}
+              <Link href="/cart" className="underline">
+                go back to your cart
+              </Link>{" "}
+              and adjust quantities.
             </div>
           )}
 
@@ -193,8 +228,8 @@ export default function CheckoutPage() {
 
           <button
             type="submit"
-            disabled={placing}
-            className="w-full rounded-full bg-rust px-6 py-3.5 text-sm font-semibold text-white hover:bg-rust-dark disabled:opacity-60"
+            disabled={placing || hasStockIssue}
+            className="w-full rounded-full bg-rust px-6 py-3.5 text-sm font-semibold text-white hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             {placing ? "Redirecting to payment..." : "Place Order & Pay"}
           </button>

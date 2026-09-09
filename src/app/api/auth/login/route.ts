@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
+import Admin from '@/models/Admin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,29 +14,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Please provide email and password' }, { status: 400 });
     }
 
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
+    const admin = await Admin.findOne({ email }).select('+password');
+    const account = admin ?? (await User.findOne({ email }).select('+password'));
+
+    if (!account) {
       return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, account.password);
     if (!isMatch) {
       return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
     }
 
-    if (!user.isVerified) {
+    if (!admin && 'isVerified' in account && !account.isVerified) {
       return NextResponse.json(
         {
           message: 'Please verify your email before logging in',
-          email: user.email,
+          email: account.email,
           needsVerification: true,
         },
         { status: 403 }
       );
     }
 
+    const role = admin ? 'admin' : 'user';
+
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: account._id, role },
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
@@ -44,10 +49,10 @@ export async function POST(request: NextRequest) {
       {
         message: 'Login successful',
         user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
+          id: account._id,
+          name: account.name,
+          email: account.email,
+          role,
         },
         token,
       },
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,
       path: '/',
     });

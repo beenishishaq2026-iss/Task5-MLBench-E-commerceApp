@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import LoadingState from "@/components/ui/LoadingState";
@@ -36,7 +37,7 @@ interface Order {
 export default function OrderConfirmationPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
-  const paymentParam = searchParams.get("payment"); 
+  const paymentParam = searchParams.get("payment");
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -109,6 +110,54 @@ export default function OrderConfirmationPage() {
     );
   }
 
+  if (paymentParam === "success" && order.isPaid) {
+    return (
+      <div className="mx-auto flex min-h-[75vh] max-w-lg flex-col items-center justify-center px-6 py-16 text-center">
+        <div className="w-full animate-fade-up rounded-2xl border border-brass/20 bg-white p-10 shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rust/10">
+            <CheckCircle2 className="h-9 w-9 text-rust" strokeWidth={1.75} />
+          </div>
+
+          <h1 className="mt-6 font-[family-name:var(--font-display)] text-3xl italic text-ink">
+            Payment Successful!
+          </h1>
+
+          <p className="mt-3 text-sm text-ink/60">
+            Thank you, {order.shippingAddress.fullName.split(" ")[0]}. Your payment has been
+            verified and your order has been confirmed.
+          </p>
+          <p className="mt-1 text-xs text-ink/40">
+            We&apos;ll process your order and keep you updated.
+          </p>
+
+          <div className="divider-signature mt-6">
+            <span className="dot" />
+          </div>
+
+          <div className="mt-6 flex justify-between text-sm text-ink/70">
+            <span>Order total</span>
+            <span className="font-semibold text-ink">${order.totalPrice.toFixed(2)}</span>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/products"
+              className="flex-1 rounded-full bg-rust px-6 py-3 text-sm font-semibold text-white hover:bg-rust-dark"
+            >
+              Continue Shopping
+            </Link>
+            <Link
+              href="/"
+              className="flex-1 rounded-full border border-brass/30 px-6 py-3 text-sm font-semibold text-ink hover:bg-cream"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rust">
@@ -122,32 +171,26 @@ export default function OrderConfirmationPage() {
         <span className="font-medium capitalize text-ink">{order.status}</span>.
       </p>
 
-      {paymentParam === "success" && order.isPaid && (
-        <div className="mt-6 rounded-xl border border-green-600/30 bg-green-600/10 px-4 py-3 text-sm text-green-800">
-          Payment received - thanks! Your order is confirmed.
-        </div>
-      )}
-
       {paymentParam === "success" && !order.isPaid && (
         <div className="mt-6 rounded-xl border border-brass/30 bg-brass/10 px-4 py-3 text-sm text-ink/70">
           Payment is confirming - this can take a few seconds to reflect here. Refresh shortly if it doesn&apos;t update.
         </div>
       )}
 
-      {paymentParam === "cancelled" && !order.isPaid && (
-        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-rust/30 bg-rust/10 px-4 py-3 text-sm text-rust-dark sm:flex-row sm:items-center sm:justify-between">
-          <span>Payment was cancelled. Your order is saved as pending.</span>
+      {paymentParam === "pending" && !order.isPaid && (
+        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-brass/40 bg-brass/10 px-4 py-3 text-sm text-ink sm:flex-row sm:items-center sm:justify-between">
+          <span>Payment pending. You left checkout before completing payment — your order is saved and waiting.</span>
           <button
             onClick={handleRetryPayment}
             disabled={retrying}
             className="shrink-0 rounded-full bg-rust px-4 py-2 text-xs font-semibold text-white hover:bg-rust-dark disabled:opacity-60"
           >
-            {retrying ? "Redirecting..." : "Try payment again"}
+            {retrying ? "Redirecting..." : "Complete payment"}
           </button>
         </div>
       )}
 
-      {errorMsg && paymentParam === "cancelled" && (
+      {errorMsg && paymentParam === "pending" && (
         <p className="mt-2 text-xs text-rust">{errorMsg}</p>
       )}
 

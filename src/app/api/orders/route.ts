@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Order from '@/models/Order';
 import Cart from '@/models/Cart';
+import Product from '@/models/Product';
 import { getAuthUser, forbidden } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -68,6 +69,72 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Your cart is empty' }, { status: 400 });
     }
 
+    const unavailable: string[] = [];
+    const insufficientStock: { name: string; available: number; requested: number }[] = [];
+
+    for (const item of cart.items as any) {
+      const product = item.product;
+      if (!product || !product.isActive) {
+        unavailable.push(item.product?.name || 'A product in your cart');
+        continue;
+      }
+      if (item.quantity > product.stock) {
+        insufficientStock.push({
+          name: product.name,
+          available: product.stock,
+          requested: item.quantity,
+        });
+      }
+    }
+
+    if (unavailable.length > 0) {
+      return NextResponse.json(
+        {
+          message: `${unavailable.join(', ')} is no longer available. Please remove it from your cart.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (insufficientStock.length > 0) {
+      const details = insufficientStock
+        .map((p) =>
+          p.available > 0
+            ? `"${p.name}" only has ${p.available} unit(s) left (you requested ${p.requested})`
+            : `"${p.name}" is out of stock`
+        )
+        .join('; ');
+      return NextResponse.json(
+        { message: `No more products available. ${details}. Please update your cart.` },
+        { status: 400 }
+      );
+    }
+
+    const decremented: { productId: string; quantity: number }[] = [];
+
+    for (const item of cart.items as any) {
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.product._id, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updated) {
+        
+        for (const done of decremented) {
+          await Product.findByIdAndUpdate(done.productId, { $inc: { stock: done.quantity } });
+        }
+        return NextResponse.json(
+          {
+            message: `No more products available. "${item.product.name}" was just sold out. Please update your cart.`,
+          },
+          { status: 409 }
+        );
+      }
+
+      decremented.push({ productId: item.product._id.toString(), quantity: item.quantity });
+    }
+
     const orderItems = cart.items.map((item: any) => {
       const price =
         item.product.discountPrice && item.product.discountPrice < item.product.price
@@ -85,16 +152,23 @@ export async function POST(request: NextRequest) {
 
     const itemsPrice = orderItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
 
-    const order = await Order.create({
-      user: auth.user._id,
-      items: orderItems,
-      shippingAddress,
-      itemsPrice,
-      totalPrice: itemsPrice,
-    });
+    let order;
+    try {
+      order = await Order.create({
+        user: auth.user._id,
+        items: orderItems,
+        shippingAddress,
+        itemsPrice,
+        totalPrice: itemsPrice,
+      });
+    } catch (err) {
+      // Order creation failed after stock was already deducted — roll it back.
+      for (const done of decremented) {
+        await Product.findByIdAndUpdate(done.productId, { $inc: { stock: done.quantity } });
+      }
+      throw err;
+    }
 
-    cart.items = [] as any;
-    await cart.save();
 
     return NextResponse.json({ message: 'Order placed successfully', order }, { status: 201 });
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Cart from '@/models/Cart';
+import Product from '@/models/Product';
 import { getAuthUser } from '@/lib/auth';
 import type { Types } from 'mongoose';
 
@@ -23,6 +24,23 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (!quantity || quantity < 1) {
       return NextResponse.json({ message: 'quantity must be at least 1' }, { status: 400 });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return NextResponse.json({ message: 'Product not found' }, { status: 404 });
+    }
+
+    if (quantity > product.stock) {
+      return NextResponse.json(
+        {
+          message:
+            product.stock > 0
+              ? `Only ${product.stock} unit(s) of "${product.name}" are available in stock.`
+              : `No more products available. "${product.name}" is currently out of stock.`,
+        },
+        { status: 400 }
+      );
     }
 
     const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);

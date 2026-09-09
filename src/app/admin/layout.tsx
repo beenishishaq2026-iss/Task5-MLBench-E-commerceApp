@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AdminGuard>
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-        {/* Mobile top bar: title + hamburger */}
+      
         <div className="flex items-center justify-between sm:block">
           <h1 className="font-[family-name:var(--font-display)] text-xl italic text-ink sm:text-2xl md:text-3xl">
             Admin Dashboard
