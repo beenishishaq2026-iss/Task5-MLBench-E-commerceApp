@@ -2,11 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { X } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Category, ProductFiltersMeta } from "@/types";
 
+interface ProductFiltersProps {
+  /** When rendered inside the mobile drawer, tweaks layout + shows a footer CTA */
+  variant?: "sidebar" | "drawer";
+  /** Called when the user taps "Show results" or the X inside the drawer */
+  onClose?: () => void;
+  /** Live result count, shown on the drawer's "Show results" button */
+  resultCount?: number;
+}
 
-export default function ProductFilters() {
+export default function ProductFilters({
+  variant = "sidebar",
+  onClose,
+  resultCount,
+}: ProductFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -93,8 +106,38 @@ export default function ProductFilters() {
     setMaxPrice("");
   }
 
-  return (
-    <aside className="w-full space-y-6 rounded-2xl border border-brass/20 bg-white p-5 lg:w-72 lg:shrink-0">
+  const isDrawer = variant === "drawer";
+
+  const content = (
+    <div
+      className={
+        isDrawer
+          ? "flex h-full min-h-0 flex-col"
+          : "w-full space-y-6 rounded-2xl border border-brass/20 bg-white p-5 lg:w-72 lg:shrink-0"
+      }
+    >
+      {isDrawer && (
+        <div className="flex shrink-0 items-center justify-between border-b border-brass/20 px-5 py-4">
+          <p className="font-[family-name:var(--font-display)] text-xl italic text-ink">
+            Filters
+          </p>
+          <button
+            onClick={onClose}
+            aria-label="Close filters"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-ink/60 hover:bg-brass/10 hover:text-rust"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      )}
+
+      <div
+        className={
+          isDrawer
+            ? "min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5"
+            : "contents"
+        }
+      >
       {/* category list — multi-select checkboxes */}
       <div>
         <div className="mb-2 flex items-center justify-between">
@@ -108,7 +151,7 @@ export default function ProductFilters() {
             </button>
           )}
         </div>
-        <div className="space-y-1">
+        <div className="filter-scroll max-h-48 space-y-1 overflow-y-auto pr-1">
           {categories.map((cat) => (
             <label
               key={cat._id}
@@ -130,7 +173,7 @@ export default function ProductFilters() {
       {filterMeta && filterMeta.brands.length > 0 && (
         <div>
           <p className="mb-2 text-sm font-medium text-ink">Brand</p>
-          <div className="space-y-1">
+          <div className="filter-scroll max-h-48 space-y-1 overflow-y-auto pr-1">
             <button
               onClick={() => updateParam("brand", "")}
               className={
@@ -203,6 +246,34 @@ export default function ProductFilters() {
       <button onClick={clearFilters} className="text-sm font-medium text-rust hover:underline">
         Clear all filters
       </button>
-    </aside>
+      </div>
+
+      {isDrawer && (
+        <div className="shrink-0 border-t border-brass/20 bg-white px-5 py-4">
+          <button
+            onClick={onClose}
+            className="block w-full rounded-full bg-ink px-6 py-3 text-center text-sm font-semibold text-cream hover:bg-rust"
+          >
+            Show {resultCount ?? ""} {resultCount === 1 ? "result" : "results"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  if (!isDrawer) {
+    return <aside className="hidden lg:block">{content}</aside>;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60]">
+      {/* backdrop */}
+      <div className="absolute inset-0 bg-ink/40" onClick={onClose} />
+
+      {/* bottom sheet — same trigger + panel on every screen size */}
+      <div className="animate-slide-up absolute inset-x-0 bottom-0 mx-auto flex max-h-[85vh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-w-md sm:rounded-3xl sm:mb-6">
+        {content}
+      </div>
+    </div>
   );
 }

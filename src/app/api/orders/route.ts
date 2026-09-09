@@ -69,8 +69,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Your cart is empty' }, { status: 400 });
     }
 
-    // Re-validate every item against the *current* stock, and drop anything
-    // that's no longer available (product deleted/deactivated in the meantime).
     const unavailable: string[] = [];
     const insufficientStock: { name: string; available: number; requested: number }[] = [];
 
@@ -112,9 +110,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Atomically decrement stock for every item, only succeeding if enough
-    // stock is still available at the moment of the update (prevents two
-    // customers from oversubscribing the same last units at the same time).
     const decremented: { productId: string; quantity: number }[] = [];
 
     for (const item of cart.items as any) {
@@ -125,8 +120,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (!updated) {
-        // Stock ran out between our check and now, or product changed.
-        // Roll back everything we already decremented.
+        
         for (const done of decremented) {
           await Product.findByIdAndUpdate(done.productId, { $inc: { stock: done.quantity } });
         }
@@ -175,8 +169,6 @@ export async function POST(request: NextRequest) {
       throw err;
     }
 
-    cart.items = [] as any;
-    await cart.save();
 
     return NextResponse.json({ message: 'Order placed successfully', order }, { status: 201 });
   } catch (error: any) {

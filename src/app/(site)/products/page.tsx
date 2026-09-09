@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { SearchX, PackageX, TriangleAlert, X } from "lucide-react";
+import { SearchX, PackageX, TriangleAlert, X, SlidersHorizontal } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { ProductListResponse } from "@/types";
 import ProductCard from "@/components/products/ProductCard";
@@ -29,6 +29,16 @@ function ProductsListing() {
   );
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // count of currently-active filters, shown as a badge on the mobile Filters button
+  const activeFilterCount = [
+    searchParams.get("category"),
+    searchParams.get("brand"),
+    searchParams.get("minPrice"),
+    searchParams.get("maxPrice"),
+    searchParams.get("inStock"),
+  ].filter(Boolean).length;
 
   const [syncedSearch, setSyncedSearch] = useState(activeSearch);
   if (activeSearch !== syncedSearch) {
@@ -147,10 +157,32 @@ function ProductsListing() {
                 : ""}
             </p>
             <div className="flex items-center gap-3">
+              {/* mobile-only trigger: the desktop sidebar handles filters on lg+ */}
+              <button
+                type="button"
+                onClick={() => setFiltersOpen(true)}
+                className="relative flex items-center gap-2 rounded-full border border-brass/30 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-rust/40 lg:hidden"
+              >
+                <SlidersHorizontal size={16} />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rust px-1 text-[11px] font-semibold text-white">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
               <ProductSort />
               <GridViewToggle value={gridCols} onChange={setGridCols} />
             </div>
           </div>
+
+          {filtersOpen && (
+            <ProductFilters
+              variant="drawer"
+              onClose={() => setFiltersOpen(false)}
+              resultCount={productData?.total}
+            />
+          )}
 
           <div className="mb-6 h-px w-full bg-brass/20" />
 

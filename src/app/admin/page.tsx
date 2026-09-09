@@ -142,6 +142,7 @@ export default function AdminDashboard() {
                       <a.icon size={16} className="text-rust" />
                     </div>
                     <div>
+                      
                       <p className="text-sm font-medium text-ink">{a.label}</p>
                       <p className="text-xs text-ink/50">{a.desc}</p>
                     </div>

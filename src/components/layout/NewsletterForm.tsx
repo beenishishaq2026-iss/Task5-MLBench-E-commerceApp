@@ -96,7 +96,7 @@ export default function NewsletterForm({ variant = "card" }: NewsletterFormProps
           disabled={status === "loading"}
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[#963F22] px-6 py-3 text-sm font-semibold text-[#FFFFFF] transition-colors hover:bg-[#7a321b] disabled:opacity-60"
         >
-          {status === "loading" ? "Subscribing..." : "Unlock Access"}
+          {status === "loading" ? "Subscribing..." : "Stay Connected"}
           {status !== "loading" && <span aria-hidden>→</span>}
         </button>
       </form>

@@ -31,6 +31,7 @@ export default function CheckoutPage() {
     phone: "",
   });
   const [placing, setPlacing] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -61,7 +62,11 @@ export default function CheckoutPage() {
         throw new Error(data.message || "Could not place order");
       }
 
-      await refreshCart();
+      // Order was created successfully and the cart has been cleared
+      // server-side. Mark this locally BEFORE refreshing cart state, so
+      // this page never falls back to the "empty cart" view while we're
+      // still redirecting to Stripe.
+      setOrderPlaced(true);
 
       const orderId = data.order._id;
 
@@ -75,8 +80,14 @@ export default function CheckoutPage() {
         throw new Error(checkoutData.message || "Could not start payment");
       }
 
+      // Sync the (now-empty) cart in the background — no need to await
+      // this before redirecting, and it won't affect this page's render
+      // since orderPlaced already guards the empty-cart view.
+      refreshCart();
+
       window.location.href = checkoutData.url;
     } catch (err) {
+      setOrderPlaced(false);
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setPlacing(false);
@@ -91,7 +102,7 @@ export default function CheckoutPage() {
     return null;
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !orderPlaced) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
         <p className="text-ink/60">Your cart is empty, nothing to check out.</p>
@@ -100,6 +111,10 @@ export default function CheckoutPage() {
         </Link>
       </div>
     );
+  }
+
+  if (orderPlaced) {
+    return <LoadingState message="Redirecting to payment..." />;
   }
 
   const stockIssues = items.filter((item) => item.quantity > item.product.stock);
