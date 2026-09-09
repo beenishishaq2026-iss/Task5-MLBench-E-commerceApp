@@ -75,8 +75,8 @@ export default function CartPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl italic text-ink">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
+      <h1 className="font-[family-name:var(--font-display)] text-3xl italic text-ink sm:text-4xl">
         Your Cart
       </h1>
 
@@ -99,65 +99,79 @@ export default function CartPage() {
                 key={item.product._id}
                 className="rounded-2xl border border-brass/20 bg-white p-4"
               >
-                <div className="flex items-center gap-4">
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-cream">
-                    {image ? (
-                      <Image src={image} alt={item.product.name} fill className="object-cover" sizes="80px" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-ink/30">
-                        No image
-                      </div>
-                    )}
-                  </div>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  {/* image + name/price — always together, top row on mobile */}
+                  <div className="flex flex-1 items-center gap-4">
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-cream">
+                      {image ? (
+                        <Image src={image} alt={item.product.name} fill className="object-cover" sizes="80px" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-ink/30">
+                          No image
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="flex-1">
-                    <Link
-                      href={`/products/${item.product.slug}`}
-                      className="font-medium text-ink hover:text-rust"
-                    >
-                      {item.product.name}
-                    </Link>
-                    <p className="mt-1 text-sm text-ink/60">${price} each</p>
-                    {stock > 0 ? (
-                      <p className="mt-0.5 text-xs text-ink/40">{stock} in stock</p>
-                    ) : (
-                      <p className="mt-0.5 text-xs font-medium text-rust">Out of stock</p>
-                    )}
-                  </div>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/products/${item.product.slug}`}
+                        className="font-medium text-ink hover:text-rust"
+                      >
+                        {item.product.name}
+                      </Link>
+                      <p className="mt-1 text-sm text-ink/60">${price} each</p>
+                      {stock > 0 ? (
+                        <p className="mt-0.5 text-xs text-ink/40">{stock} in stock</p>
+                      ) : (
+                        <p className="mt-0.5 text-xs font-medium text-rust">Out of stock</p>
+                      )}
+                    </div>
 
-                  <div className="flex items-center rounded-full border border-brass/30">
+                    {/* remove button sits top-right on mobile, moves to the far right row below on desktop */}
                     <button
-                      onClick={() =>
-                        handleQuantityChange(item.product._id, item.quantity - 1, stock)
-                      }
-                      disabled={item.quantity <= 1 || isUpdating}
-                      className="px-3 py-1.5 text-ink/70 hover:text-rust disabled:cursor-not-allowed disabled:opacity-30"
+                      onClick={() => removeFromCart(item.product._id)}
+                      className="shrink-0 text-sm text-rust hover:underline sm:hidden"
                     >
-                      -
-                    </button>
-                    <span className="w-6 text-center text-sm">{item.quantity}</span>
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(item.product._id, item.quantity + 1, stock)
-                      }
-                      disabled={atMaxStock || isUpdating}
-                      title={atMaxStock ? "No more products available in stock" : undefined}
-                      className="px-3 py-1.5 text-ink/70 hover:text-rust disabled:cursor-not-allowed disabled:opacity-30"
-                    >
-                      +
+                      Remove
                     </button>
                   </div>
 
-                  <p className="w-16 text-right font-medium text-ink">
-                    ${(price * item.quantity).toFixed(2)}
-                  </p>
+                  {/* quantity stepper + line total — second row on mobile, inline on desktop */}
+                  <div className="flex items-center justify-between gap-4 pl-[96px] sm:justify-end sm:gap-6 sm:pl-0">
+                    <div className="flex items-center rounded-full border border-brass/30">
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(item.product._id, item.quantity - 1, stock)
+                        }
+                        disabled={item.quantity <= 1 || isUpdating}
+                        className="px-3 py-1.5 text-ink/70 hover:text-rust disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        -
+                      </button>
+                      <span className="w-6 text-center text-sm">{item.quantity}</span>
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(item.product._id, item.quantity + 1, stock)
+                        }
+                        disabled={atMaxStock || isUpdating}
+                        title={atMaxStock ? "No more products available in stock" : undefined}
+                        className="px-3 py-1.5 text-ink/70 hover:text-rust disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        +
+                      </button>
+                    </div>
 
-                  <button
-                    onClick={() => removeFromCart(item.product._id)}
-                    className="text-sm text-rust hover:underline"
-                  >
-                    Remove
-                  </button>
+                    <p className="w-16 shrink-0 text-right font-medium text-ink">
+                      ${(price * item.quantity).toFixed(2)}
+                    </p>
+
+                    <button
+                      onClick={() => removeFromCart(item.product._id)}
+                      className="hidden shrink-0 text-sm text-rust hover:underline sm:inline"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
 
                 {itemErrors[item.product._id] && (
@@ -196,11 +210,11 @@ export default function CartPage() {
             </button>
           ) : (
             <Link
-              href="/checkout"
-              className="mt-6 block rounded-full bg-ink px-6 py-3 text-center text-sm font-semibold text-cream hover:bg-rust"
-            >
-              Proceed to Checkout
-            </Link>
+  href="/checkout"
+  className="mt-6 block rounded-full bg-rust px-6 py-3 text-center text-sm font-semibold text-cream hover:bg-rust-dark"
+>
+  Proceed to Checkout
+</Link>
           )}
         </div>
       </div>

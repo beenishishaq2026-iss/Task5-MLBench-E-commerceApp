@@ -189,11 +189,11 @@ export default function ProductCard({ product }: { product: Product }) {
           Free Delivery
         </p>
 
-        <button
-          onClick={handleAddToCart}
-          disabled={adding || product.stock === 0}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-rust px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <button 
+  onClick={handleAddToCart}
+  disabled={adding || product.stock === 0}
+  className="mt-auto flex w-full items-center justify-center gap-2 rounded-full bg-rust px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
+>
           {added ? <Check size={14} /> : <ShoppingCart size={14} />}
           {product.stock === 0
             ? "Out of stock"

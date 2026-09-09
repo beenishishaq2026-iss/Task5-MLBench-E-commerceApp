@@ -5,6 +5,7 @@ import { Pencil, Trash2, Plus, X } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Product, Category } from "@/types";
 import { Spinner } from "@/components/ui/LoadingState";
+import SelectDropdown from "@/components/ui/SelectDropdown";
 
 const emptyForm = {
   name: "", description: "", price: "", discountPrice: "",
@@ -66,8 +67,14 @@ export default function AdminProductsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError("");
+
+    if (!form.category) {
+      setError("Please select a category");
+      return;
+    }
+
+    setSaving(true);
 
     const fd = new FormData();
     fd.append("name", form.name);
@@ -134,11 +141,14 @@ export default function AdminProductsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-ink/70">Category</label>
-              <select required value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-brass/30 px-3 py-2 text-sm focus:border-rust focus:outline-none">
-                <option value="">Select category</option>
-                {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-              </select>
+              <SelectDropdown
+                className="mt-1"
+                value={form.category}
+                onChange={(val) => setForm({ ...form, category: val })}
+                placeholder="Select category"
+                invalid={!!error && !form.category}
+                options={categories.map((c) => ({ value: c._id, label: c.name }))}
+              />
             </div>
           </div>
 

@@ -7,9 +7,6 @@ import { uploadImage, deleteImage } from '@/utils/cloudinary';
 import { getAuthUser, forbidden } from '@/lib/auth';
 import { parseMultipleImages } from '@/utils/upload';
 
-// Same pattern as categories: GET looks the record up by `slug`, PUT/DELETE
-// look it up by Mongo `_id` - matching the old /api/products/:slug (GET)
-// vs /api/products/:id (PUT/DELETE) Express routes.
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
