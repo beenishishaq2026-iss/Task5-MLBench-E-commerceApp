@@ -1,85 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Cart from '@/models/Cart';
-import Product from '@/models/Product';
 import { getAuthUser } from '@/lib/auth';
 import type { Types } from 'mongoose';
 
 async function getOrCreateCart(userId: Types.ObjectId) {
   let cart = await Cart.findOne({ user: userId });
+
   if (!cart) {
-    cart = await Cart.create({ user: userId, items: [] });
+    cart = await Cart.create({
+      user: userId,
+      items: [],
+    });
   }
+
   return cart;
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
+
     const auth = await getAuthUser(request);
     if ('error' in auth) return auth.error;
 
-    const { productId } = await params;
-    const { quantity } = await request.json();
-
-    if (!quantity || quantity < 1) {
-      return NextResponse.json({ message: 'quantity must be at least 1' }, { status: 400 });
-    }
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return NextResponse.json({ message: 'Product not found' }, { status: 404 });
-    }
-
-    if (quantity > product.stock) {
-      return NextResponse.json(
-        {
-          message:
-            product.stock > 0
-              ? `Only ${product.stock} unit(s) of "${product.name}" are available in stock.`
-              : `No more products available. "${product.name}" is currently out of stock.`,
-        },
-        { status: 400 }
-      );
-    }
-
     const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-    const item = cart.items.find((i) => i.product.toString() === productId);
 
-    if (!item) {
-      return NextResponse.json({ message: 'Item not in cart' }, { status: 404 });
-    }
-
-    item.quantity = quantity;
-    await cart.save();
     await cart.populate('items.product');
 
-    return NextResponse.json({ message: 'Cart updated', cart }, { status: 200 });
+    return NextResponse.json({ cart }, { status: 200 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
-  }
-}
+    const message =
+      error instanceof Error ? error.message : 'Server error';
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
-  try {
-    await connectDB();
-    const auth = await getAuthUser(request);
-    if ('error' in auth) return auth.error;
-
-    const { productId } = await params;
-    const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-    const index = cart.items.findIndex((i) => i.product.toString() === productId);
-    if (index !== -1) {
-      cart.items.splice(index, 1);
-    }
-
-    await cart.save();
-    await cart.populate('items.product');
-
-    return NextResponse.json({ message: 'Item removed from cart', cart }, { status: 200 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Server error', error: message },
+      { status: 500 }
+    );
   }
 }
