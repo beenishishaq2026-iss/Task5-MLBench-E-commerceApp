@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Truck, RotateCcw, ShieldCheck } from "lucide-react";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import NewsletterForm from "@/components/layout/NewsletterForm";
@@ -83,11 +84,14 @@ export default async function Home() {
           </div>
 
           <div className="relative">
-            <div className="overflow-hidden rounded-3xl shadow-xl">
-              <img
+            <div className="relative h-[420px] overflow-hidden rounded-3xl shadow-xl">
+              <Image
                 src="/images/hero-flatlay.png"
                 alt="Curated earthy goods styled on natural linen"
-                className="h-[420px] w-full object-cover"
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
             <div className="absolute -bottom-6 -left-6 hidden items-center gap-3 rounded-2xl bg-white px-5 py-4 shadow-lg sm:flex">
@@ -137,12 +141,14 @@ export default async function Home() {
                 href={`/products?category=${cat._id}`}
                 className="group overflow-hidden rounded-2xl border border-brass/30 bg-white transition-all hover:border-rust hover:shadow-md"
               >
-                <div className="h-28 w-full overflow-hidden bg-cream">
+                <div className="relative h-28 w-full overflow-hidden bg-cream">
                   {cat.image.url ? (
-                    <img
+                    <Image
                       src={cat.image.url}
                       alt={cat.name}
-                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                      sizes="(max-width: 768px) 33vw, 16vw"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs text-ink/30">
@@ -196,10 +202,12 @@ export default async function Home() {
       {/* Newsletter */}
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="relative overflow-hidden rounded-3xl">
-          <img
+          <Image
             src="/images/hero-flatlay.png"
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
           />
           <div className="absolute inset-0 bg-ink/70" />
 

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const bcrypt = require("bcryptjs");
 const readline = require("readline/promises");
 const { stdin, stdout } = require("process");

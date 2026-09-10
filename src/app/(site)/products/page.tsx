@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { SearchX, PackageX, TriangleAlert, X, SlidersHorizontal } from "lucide-react";
+import { TriangleAlert, X, SlidersHorizontal } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { ProductListResponse } from "@/types";
 import ProductCard from "@/components/products/ProductCard";
@@ -52,7 +52,11 @@ function ProductsListing() {
     if (debouncedSearchText !== activeSearch) {
       updateSearchParam(debouncedSearchText);
     }
-    
+    // activeSearch and updateSearchParam intentionally excluded: this effect
+    // should only re-run when the debounced typed value changes, not when
+    // the URL-derived activeSearch changes (that would create a loop) or
+    // when updateSearchParam's identity changes on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchText]);
 
   useEffect(() => {

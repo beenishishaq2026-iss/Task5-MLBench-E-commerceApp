@@ -47,8 +47,9 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       });
-    } catch (emailError: any) {
-      console.error('Password reset OTP email failed:', emailError.message);
+    } catch (emailError) {
+      const message = emailError instanceof Error ? emailError.message : 'Server error';
+      console.error('Password reset OTP email failed:', message);
       return NextResponse.json(
         { message: 'Could not send the reset code. Please try again in a moment.' },
         { status: 500 }
@@ -56,7 +57,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(genericResponse, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+ } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

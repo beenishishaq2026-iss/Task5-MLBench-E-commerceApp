@@ -9,6 +9,16 @@ import { getAuthUser, forbidden } from '@/lib/auth';
 import { parseMultipleImages } from '@/utils/upload';
 import type { IProduct } from '@/models/Product';
 
+interface ProductQueryFilters {
+  isActive?: boolean;
+  category?: string | { $in: string[] };
+  brand?: string;
+  price?: { $gte?: number; $lte?: number };
+  stock?: { $gt: number };
+  isFeatured?: boolean;
+  $text?: { $search: string };
+}
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -33,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const products = await features.query;
 
-    const totalFilters: Record<string, any> = includeInactive ? {} : { isActive: true };
+    const totalFilters: ProductQueryFilters = includeInactive ? {} : { isActive: true };
 
     if (query.category) {
       const categoryIds = query.category.split(',').map((id) => id.trim()).filter(Boolean);
@@ -77,9 +87,10 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
     console.error('GET PRODUCTS ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
@@ -143,8 +154,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ message: 'Product created successfully', product }, { status: 201 });
-  } catch (error: any) {
-    console.error('CREATE PRODUCT ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+  } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

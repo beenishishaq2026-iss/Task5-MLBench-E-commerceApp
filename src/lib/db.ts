@@ -7,14 +7,7 @@ interface MongooseCache {
   promise: Promise<typeof mongoose> | null;
 }
 
-// A Next.js dev server reloads modules on every request in some cases, and
-// serverless deployments can spin up many isolated instances, so the
-// connection is cached on the global object - otherwise every request would
-// open a brand new MongoDB connection. (There was no equivalent concern in
-// the old long-running Express process, which called connectDB() once at
-// startup - this caching is the Next.js-appropriate version of that.)
 declare global {
-  // eslint-disable-next-line no-var
   var _mongooseCache: MongooseCache | undefined;
 }
 

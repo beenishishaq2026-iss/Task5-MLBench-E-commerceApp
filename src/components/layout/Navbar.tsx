@@ -63,6 +63,16 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // FIX (react-hooks/set-state-in-effect): reset the mobile drawer when the
+  // route changes. Instead of an effect that calls setState synchronously,
+  // React's recommended pattern is to compare against the previous value
+  // during render and adjust state directly — no effect needed.
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setOpen(false);
+  }
+
   useEffect(() => {
     async function fetchCategories() {
       try {
@@ -78,18 +88,12 @@ export default function Navbar() {
     fetchCategories();
   }, []);
 
-  // Lock body scroll while the mobile drawer is open, and always close it
-  // on route changes so it doesn't linger open after navigating.
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   const handleLogout = async () => {
     await logout();

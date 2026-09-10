@@ -20,13 +20,17 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { productId } = await params;
     const wishlist = await getOrCreateWishlist(auth.user._id as Types.ObjectId);
-    wishlist.products = wishlist.products.filter((p) => p.toString() !== productId) as any;
+    const index = wishlist.products.findIndex((p) => p.toString() === productId);
+    if (index !== -1) {
+      wishlist.products.splice(index, 1);
+    }
 
     await wishlist.save();
     await wishlist.populate('products');
 
     return NextResponse.json({ message: 'Removed from wishlist', wishlist }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }

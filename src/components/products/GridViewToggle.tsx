@@ -21,7 +21,7 @@ interface GridViewToggleProps {
 }
 
 export default function GridViewToggle({ value, onChange }: GridViewToggleProps) {
- 
+
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 639px)");
 
@@ -34,7 +34,11 @@ export default function GridViewToggle({ value, onChange }: GridViewToggleProps)
     enforceMobileDefault();
     mediaQuery.addEventListener("change", enforceMobileDefault);
     return () => mediaQuery.removeEventListener("change", enforceMobileDefault);
-  }, [value]);
+    // FIX (react-hooks/exhaustive-deps): onChange is used inside the
+    // effect, so it belongs in the dependency array. Re-running the
+    // listener setup when the callback identity changes is correct and
+    // harmless here — the cleanup always removes the previous listener.
+  }, [value, onChange]);
 
   return (
     <div className="flex shrink-0 items-center gap-1 rounded-full border border-brass/30 bg-white p-1">

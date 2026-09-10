@@ -30,12 +30,13 @@ export async function DELETE(
 
     await deleteImage(decodedPublicId);
 
-    product.images = product.images.filter((img) => img.publicId !== decodedPublicId) as any;
+    product.images = product.images.filter((img) => img.publicId !== decodedPublicId);
     await product.save();
 
     return NextResponse.json({ message: 'Image removed successfully', product }, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
     console.error('DELETE PRODUCT IMAGE ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }

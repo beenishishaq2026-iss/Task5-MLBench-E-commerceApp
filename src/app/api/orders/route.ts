@@ -3,7 +3,13 @@ import connectDB from '@/lib/db';
 import Order from '@/models/Order';
 import Cart from '@/models/Cart';
 import Product from '@/models/Product';
+import type { IProduct } from '@/models/Product';
 import { getAuthUser, forbidden } from '@/lib/auth';
+
+interface PopulatedCartItem {
+  product: IProduct;
+  quantity: number;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +23,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    const filter: Record<string, any> = {};
+const filter: Record<string, unknown> = {};
     if (status && status !== 'all') {
       filter.status = status;
     }
@@ -39,8 +45,9 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
@@ -71,8 +78,9 @@ export async function POST(request: NextRequest) {
 
     const unavailable: string[] = [];
     const insufficientStock: { name: string; available: number; requested: number }[] = [];
+    const populatedItems = cart.items as unknown as PopulatedCartItem[];
 
-    for (const item of cart.items as any) {
+    for (const item of populatedItems) {
       const product = item.product;
       if (!product || !product.isActive) {
         unavailable.push(item.product?.name || 'A product in your cart');
@@ -112,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     const decremented: { productId: string; quantity: number }[] = [];
 
-    for (const item of cart.items as any) {
+    for (const item of populatedItems) {
       const updated = await Product.findOneAndUpdate(
         { _id: item.product._id, stock: { $gte: item.quantity } },
         { $inc: { stock: -item.quantity } },
@@ -135,7 +143,7 @@ export async function POST(request: NextRequest) {
       decremented.push({ productId: item.product._id.toString(), quantity: item.quantity });
     }
 
-    const orderItems = cart.items.map((item: any) => {
+    const orderItems = populatedItems.map((item) => {
       const price =
         item.product.discountPrice && item.product.discountPrice < item.product.price
           ? item.product.discountPrice
@@ -150,7 +158,7 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    const itemsPrice = orderItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
+    const itemsPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     let order;
     try {
@@ -171,7 +179,8 @@ export async function POST(request: NextRequest) {
 
 
     return NextResponse.json({ message: 'Order placed successfully', order }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+ } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

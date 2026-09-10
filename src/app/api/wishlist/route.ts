@@ -3,7 +3,7 @@ import connectDB from '@/lib/db';
 import Wishlist from '@/models/Wishlist';
 import Product from '@/models/Product';
 import { getAuthUser } from '@/lib/auth';
-import type { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 async function getOrCreateWishlist(userId: Types.ObjectId) {
   let wishlist = await Wishlist.findOne({ user: userId });
@@ -22,8 +22,9 @@ export async function GET(request: NextRequest) {
     const wishlist = await getOrCreateWishlist(auth.user._id as Types.ObjectId);
     await wishlist.populate('products');
     return NextResponse.json({ wishlist }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
@@ -49,13 +50,14 @@ export async function POST(request: NextRequest) {
     const alreadyIn = wishlist.products.some((p) => p.toString() === productId);
 
     if (!alreadyIn) {
-      wishlist.products.push(productId as any);
+      wishlist.products.push(new Types.ObjectId(productId));
       await wishlist.save();
     }
 
     await wishlist.populate('products');
     return NextResponse.json({ message: 'Added to wishlist', wishlist }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+} catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

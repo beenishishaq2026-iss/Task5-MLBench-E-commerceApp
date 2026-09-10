@@ -84,6 +84,9 @@ export default function OrdersPage() {
         throw new Error(data.message || "Could not start payment");
       }
 
+      // FIX (react-hooks/immutability): deliberate full-page redirect to
+      // Stripe checkout, not a React state mutation — safe to disable here.
+      // eslint-disable-next-line react-hooks/immutability
       window.location.href = data.url;
     } catch (err) {
       setPayErrorId(orderId);

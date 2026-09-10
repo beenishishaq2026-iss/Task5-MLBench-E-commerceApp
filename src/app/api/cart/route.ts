@@ -13,30 +13,17 @@ async function getOrCreateCart(userId: Types.ObjectId) {
   return cart;
 }
 
-export async function GET(request: NextRequest) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     await connectDB();
     const auth = await getAuthUser(request);
     if ('error' in auth) return auth.error;
 
-    const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-    await cart.populate('items.product');
-    return NextResponse.json({ cart }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
-}
+    const { productId } = await params;
+    const { quantity } = await request.json();
 
-export async function POST(request: NextRequest) {
-  try {
-    await connectDB();
-    const auth = await getAuthUser(request);
-    if ('error' in auth) return auth.error;
-
-    const { productId, quantity } = await request.json();
-
-    if (!productId) {
-      return NextResponse.json({ message: 'productId is required' }, { status: 400 });
+    if (!quantity || quantity < 1) {
+      return NextResponse.json({ message: 'quantity must be at least 1' }, { status: 400 });
     }
 
     const product = await Product.findById(productId);
@@ -44,68 +31,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
     }
 
-    if (!product.isActive) {
-      return NextResponse.json({ message: 'This product is no longer available' }, { status: 400 });
-    }
-
-    if (product.stock <= 0) {
-      return NextResponse.json({ message: 'No more products available in stock' }, { status: 400 });
-    }
-
-    const qtyToAdd = quantity && quantity > 0 ? quantity : 1;
-
-    const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-
-    const existingItem = cart.items.find((item) => item.product.toString() === productId);
-
-    const alreadyInCart = existingItem ? existingItem.quantity : 0;
-    const requestedTotal = alreadyInCart + qtyToAdd;
-
-    if (requestedTotal > product.stock) {
-      const canStillAdd = product.stock - alreadyInCart;
-      if (canStillAdd <= 0) {
-        return NextResponse.json(
-          {
-            message: `No more products available. You already have the maximum stock (${product.stock}) of "${product.name}" in your cart.`,
-          },
-          { status: 400 }
-        );
-      }
+    if (quantity > product.stock) {
       return NextResponse.json(
         {
-          message: `Only ${product.stock} unit(s) of "${product.name}" are available in stock. You can add up to ${canStillAdd} more.`,
+          message:
+            product.stock > 0
+              ? `Only ${product.stock} unit(s) of "${product.name}" are available in stock.`
+              : `No more products available. "${product.name}" is currently out of stock.`,
         },
         { status: 400 }
       );
     }
 
-    if (existingItem) {
-      existingItem.quantity = requestedTotal;
-    } else {
-      cart.items.push({ product: productId, quantity: qtyToAdd } as any);
+    const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
+    const item = cart.items.find((i) => i.product.toString() === productId);
+
+    if (!item) {
+      return NextResponse.json({ message: 'Item not in cart' }, { status: 404 });
     }
 
+    item.quantity = quantity;
     await cart.save();
     await cart.populate('items.product');
 
-    return NextResponse.json({ message: 'Item added to cart', cart }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Cart updated', cart }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     await connectDB();
     const auth = await getAuthUser(request);
     if ('error' in auth) return auth.error;
 
+    const { productId } = await params;
     const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-    cart.items = [] as any;
-    await cart.save();
+    const index = cart.items.findIndex((i) => i.product.toString() === productId);
+    if (index !== -1) {
+      cart.items.splice(index, 1);
+    }
 
-    return NextResponse.json({ message: 'Cart cleared', cart }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    await cart.save();
+    await cart.populate('items.product');
+
+    return NextResponse.json({ message: 'Item removed from cart', cart }, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
