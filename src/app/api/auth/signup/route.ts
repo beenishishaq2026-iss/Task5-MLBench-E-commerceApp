@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       });
-    } catch (emailError: any) {
-      console.error('Signup succeeded but OTP email failed:', emailError.message);
+    } catch (emailError) {
+      const message = emailError instanceof Error ? emailError.message : 'Server error';
+      console.error('Signup succeeded but OTP email failed:', message);
     }
 
     return NextResponse.json(

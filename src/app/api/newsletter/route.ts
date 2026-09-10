@@ -48,9 +48,10 @@ export async function POST(request: NextRequest) {
     }).catch((err) => console.error('Newsletter welcome email failed:', err.message));
 
     return NextResponse.json({ message: 'Subscribed successfully. Welcome to the collective!' }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
     console.error('NEWSLETTER SUBSCRIBE ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 

@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -28,7 +29,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function refreshWishlist() {
+  const refreshWishlist = useCallback(async () => {
     if (!user) {
       setProducts([]);
       return;
@@ -46,14 +47,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
 
   useEffect(() => {
     (async () => {
       await refreshWishlist();
     })();
-   
-  }, [user]);
+  }, [refreshWishlist]);
 
   function isInWishlist(productId: string) {
     return products.some((p) => p._id === productId);

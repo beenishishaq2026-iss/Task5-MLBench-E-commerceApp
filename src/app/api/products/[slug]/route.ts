@@ -6,6 +6,7 @@ import slugify from '@/utils/slugify';
 import { uploadImage, deleteImage } from '@/utils/cloudinary';
 import { getAuthUser, forbidden } from '@/lib/auth';
 import { parseMultipleImages } from '@/utils/upload';
+import { Types } from 'mongoose';
 
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
@@ -18,9 +19,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
     }
     return NextResponse.json({ product }, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
     console.error('GET PRODUCT BY SLUG ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
@@ -55,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       if (!categoryExists) {
         return NextResponse.json({ message: 'Invalid category' }, { status: 400 });
       }
-      product.category = category as any;
+      product.category = new Types.ObjectId(category);
     }
 
     if (name?.trim()) {
@@ -92,9 +94,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     await product.save();
     return NextResponse.json({ message: 'Product updated successfully', product }, { status: 200 });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
     console.error('UPDATE PRODUCT ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 

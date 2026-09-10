@@ -55,8 +55,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     await cart.populate('items.product');
 
     return NextResponse.json({ message: 'Cart updated', cart }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
@@ -68,13 +69,17 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { productId } = await params;
     const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-    cart.items = cart.items.filter((i) => i.product.toString() !== productId) as any;
+    const index = cart.items.findIndex((i) => i.product.toString() === productId);
+    if (index !== -1) {
+      cart.items.splice(index, 1);
+    }
 
     await cart.save();
     await cart.populate('items.product');
 
     return NextResponse.json({ message: 'Item removed from cart', cart }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }

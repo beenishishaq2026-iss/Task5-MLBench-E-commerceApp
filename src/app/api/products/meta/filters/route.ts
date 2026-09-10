@@ -21,8 +21,9 @@ export async function GET() {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
     console.error('GET PRODUCT FILTERS ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }

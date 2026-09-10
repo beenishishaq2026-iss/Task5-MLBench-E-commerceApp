@@ -47,8 +47,9 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       });
-    } catch (emailError: any) {
-      console.error('Password reset OTP email failed:', emailError.message);
+    } catch (emailError) {
+      const message = emailError instanceof Error ? emailError.message : 'Server error';
+      console.error('Password reset OTP email failed:', message);
       return NextResponse.json(
         { message: 'Could not send the reset code. Please try again in a moment.' },
         { status: 500 }

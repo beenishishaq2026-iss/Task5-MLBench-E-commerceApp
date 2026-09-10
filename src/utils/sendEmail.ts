@@ -26,8 +26,9 @@ const sendEmail = async ({ to, subject, html }: SendEmailParams) => {
     });
     console.log('Email sent:', info.messageId, info.response);
     return info;
-  } catch (error: any) {
-    console.error('Error sending email:', error.message);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    console.error('Error sending email:', message);
     throw new Error('Email could not be sent');
   }
 };
