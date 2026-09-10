@@ -30,22 +30,25 @@ export default function AdminOrdersPage() {
   }, [statusFilter]);
 
   async function loadOrders() {
-    setLoading(true);
-    try {
-      const url = `${API_URL}/api/orders${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`;
-      const res = await fetch(url, { credentials: "include" });
-
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
-
-      if (!res.ok) throw new Error(data.message || `Failed to load orders (${res.status})`);
-      setOrders(data.orders || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+  setLoading(true);
+  try {
+    const url = `${API_URL}/api/orders${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`;
+    const res = await fetch(url, { credentials: "include" });
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
+    if (!res.ok) throw new Error(data.message || `Failed to load orders (${res.status})`);
+    setOrders(data.orders || []);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Something went wrong");
+  } finally {
+    setLoading(false);
   }
+}
+
+useEffect(() => {
+  loadOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [statusFilter]);
 
   async function handleStatusChange(orderId: string, newStatus: string) {
     setUpdatingId(orderId);

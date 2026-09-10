@@ -19,13 +19,13 @@ export default function CategoriesPage() {
   const [activeSearch, setActiveSearch] = useState("");
   const [gridCols, setGridCols] = useState(3);
 
-  // debounce the raw input so we only re-filter once typing pauses,
-  // instead of on every keystroke
   const debouncedSearchText = useDebouncedValue(searchText, 350);
 
-  useEffect(() => {
+  const [prevDebounced, setPrevDebounced] = useState(debouncedSearchText);
+  if (debouncedSearchText !== prevDebounced) {
+    setPrevDebounced(debouncedSearchText);
     setActiveSearch(debouncedSearchText);
-  }, [debouncedSearchText]);
+  }
 
   useEffect(() => {
     async function fetchCategories() {

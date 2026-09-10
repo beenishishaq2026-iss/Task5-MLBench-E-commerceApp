@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
 
     const orders = await Order.find({ user: auth.user._id }).sort({ createdAt: -1 });
     return NextResponse.json({ count: orders.length, orders }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+  } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

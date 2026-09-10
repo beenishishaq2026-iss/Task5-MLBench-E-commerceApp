@@ -2,22 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
-import slugify from '@/utils/slugify';
-import { uploadImage } from '@/utils/cloudinary';
-import { getAuthUser, forbidden } from '@/lib/auth';
-import { parseSingleImage } from '@/utils/upload';
+import { getAuthUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    let filter: Record<string, any> = { isActive: true };
+    let filter: Record<string, unknown> = { isActive: true };
 
     if (searchParams.get('all') === 'true') {
       const auth = await getAuthUser(request);
       if (!('error' in auth) && auth.user.role === 'admin') {
-        filter = {}; // admins can see inactive categories too
+        filter = {}; 
       }
     }
 
@@ -41,7 +38,8 @@ export async function GET(request: NextRequest) {
       { count: categoriesWithCounts.length, categories: categoriesWithCounts },
       { status: 200 }
     );
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Server error";
+    return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
   }
 }

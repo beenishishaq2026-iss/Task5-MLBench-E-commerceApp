@@ -143,8 +143,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ message: 'Product created successfully', product }, { status: 201 });
-  } catch (error: any) {
-    console.error('CREATE PRODUCT ERROR:', error);
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+  } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

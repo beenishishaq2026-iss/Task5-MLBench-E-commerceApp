@@ -65,8 +65,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       order.paidAt = new Date();
     }
 
-    // Restore stock when an order is cancelled, and re-deduct it if a
-    // cancelled order is ever reinstated to an active status.
     if (status === 'cancelled' && !wasCancelled) {
       for (const item of order.items as any) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
@@ -80,7 +78,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     await order.save();
 
     return NextResponse.json({ message: 'Order status updated', order }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+ } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

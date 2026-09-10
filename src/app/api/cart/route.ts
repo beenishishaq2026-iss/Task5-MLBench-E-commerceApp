@@ -105,7 +105,8 @@ export async function DELETE(request: NextRequest) {
     await cart.save();
 
     return NextResponse.json({ message: 'Cart cleared', cart }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+  } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

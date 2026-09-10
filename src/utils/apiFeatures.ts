@@ -1,10 +1,20 @@
 import { Query } from 'mongoose';
 
+type QueryString = Record<string, string>;
+
+interface ProductFilters {
+  category?: string | { $in: string[] };
+  brand?: string;
+  price?: { $gte?: number; $lte?: number };
+  stock?: { $gt: number };
+  isFeatured?: boolean;
+}
+
 class APIFeatures<T> {
   query: Query<T[], T>;
-  queryString: Record<string, any>;
+  queryString: QueryString;
 
-  constructor(query: Query<T[], T>, queryString: Record<string, any>) {
+  constructor(query: Query<T[], T>, queryString: QueryString) {
     this.query = query;
     this.queryString = queryString;
   }
@@ -13,7 +23,7 @@ class APIFeatures<T> {
     if (this.queryString.search) {
       this.query = this.query.find({
         $text: { $search: this.queryString.search },
-      } as any);
+      } as Record<string, unknown>);
     }
     return this;
   }
@@ -23,7 +33,7 @@ class APIFeatures<T> {
     const excludedFields = ['search', 'sort', 'page', 'limit', 'fields'];
     excludedFields.forEach((field) => delete queryObj[field]);
 
-    const filters: any = {};
+    const filters: ProductFilters = {};
 
     if (queryObj.category) {
       const categoryIds = queryObj.category
@@ -51,7 +61,7 @@ class APIFeatures<T> {
       filters.isFeatured = true;
     }
 
-    this.query = this.query.find(filters);
+    this.query = this.query.find(filters as Record<string, unknown>);
     return this;
   }
 

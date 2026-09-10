@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GitBranch, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 
 const TABS = [
@@ -18,12 +18,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const activeRef = useRef<HTMLAnchorElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [pathname]);
+  // FIX (react-hooks/set-state-in-effect): reset the mobile menu when the
+  // route changes, without a setState-in-effect. Compare against the
+  // previous pathname during render and adjust state directly instead.
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setMobileMenuOpen(false);
+  }
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [pathname]);
 
   return (
@@ -62,8 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </nav>
         )}
-
-        {/* Desktop/tablet: horizontal tabs */}
+        
         <nav className="mt-6 hidden gap-2 overflow-x-auto border-b border-brass/30 sm:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABS.map((tab) => {
             const active = pathname === tab.href;

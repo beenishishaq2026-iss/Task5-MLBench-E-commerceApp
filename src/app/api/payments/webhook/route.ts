@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
     await connectDB();
     const event = await handleStripeWebhookEvent(rawBody, signature);
     return NextResponse.json({ received: true, type: event.type }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: `Webhook Error: ${error.message}` }, { status: 400 });
-  }
+ } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

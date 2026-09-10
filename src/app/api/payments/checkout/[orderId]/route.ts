@@ -18,7 +18,8 @@ export async function POST(
     const result = await createCheckoutSession(orderId, auth.user._id.toString());
 
     return NextResponse.json(result.body, { status: result.status });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+ } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    const filter: Record<string, any> = {};
+const filter: Record<string, unknown> = {};
     if (status && status !== 'all') {
       filter.status = status;
     }
@@ -171,7 +171,8 @@ export async function POST(request: NextRequest) {
 
 
     return NextResponse.json({ message: 'Order placed successfully', order }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
-  }
+ } catch (error) {
+  const message = error instanceof Error ? error.message : "Server error";
+  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
+}
 }
