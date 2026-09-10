@@ -48,7 +48,6 @@ export default function AdminDashboard() {
     // synchronous setLoading(true) inside fetchStats. Scoped disable.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cards = [

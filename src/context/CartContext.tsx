@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -35,8 +36,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function refreshCart() {
-    
+  const refreshCart = useCallback(async () => {
     if (!user) {
       setItems([]);
       return;
@@ -54,14 +54,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
 
   useEffect(() => {
     (async () => {
       await refreshCart();
     })();
-   
-  }, [user]);
+  }, [refreshCart]);
 
   async function addToCart(productId: string, quantity = 1) {
     const res = await fetch(`${API_URL}/api/cart`, {

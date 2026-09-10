@@ -16,8 +16,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ message: 'Category not found' }, { status: 404 });
     }
     return NextResponse.json({ category }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
@@ -58,8 +59,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     await category.save();
     return NextResponse.json({ message: 'Category updated successfully', category }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
@@ -83,7 +85,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     await category.deleteOne();
     return NextResponse.json({ message: 'Category deleted successfully' }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }

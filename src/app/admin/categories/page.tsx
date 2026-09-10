@@ -38,7 +38,6 @@ export default function AdminCategoriesPage() {
     // synchronous setLoading(true) inside loadCategories. Scoped disable.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function openCreate() {
