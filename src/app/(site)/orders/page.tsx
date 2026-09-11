@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PackageX, ChevronRight } from "lucide-react";
+import { PackageX, ChevronRight, Download } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import LoadingState from "@/components/ui/LoadingState";
@@ -202,6 +202,18 @@ export default function OrdersPage() {
                     >
                       {isPaying ? "Redirecting..." : "Pay Now"}
                     </button>
+                  )}
+                  {order.isPaid && (
+                    <a
+                      href={`${API_URL}/api/orders/${order._id}/invoice`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      title="Download invoice"
+                      className="shrink-0 rounded-full border border-brass/25 p-2 text-ink/50 hover:border-rust/40 hover:text-rust"
+                    >
+                      <Download size={15} />
+                    </a>
                   )}
                   <ChevronRight size={18} className="text-ink/30" />
                 </div>

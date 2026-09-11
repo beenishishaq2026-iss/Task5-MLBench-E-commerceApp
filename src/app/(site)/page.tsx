@@ -44,6 +44,7 @@ async function getFeaturedProducts() {
   }
 }
 
+export const dynamic = "force-dynamic";
 export default async function Home() {
   const featuredProducts = await getFeaturedProducts();
   const categories = await getCategories();

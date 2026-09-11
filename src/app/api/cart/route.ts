@@ -7,31 +7,65 @@ import type { Types } from 'mongoose';
 
 async function getOrCreateCart(userId: Types.ObjectId) {
   let cart = await Cart.findOne({ user: userId });
+
   if (!cart) {
-    cart = await Cart.create({ user: userId, items: [] });
+    cart = await Cart.create({
+      user: userId,
+      items: [],
+    });
   }
+
   return cart;
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
+
     const auth = await getAuthUser(request);
     if ('error' in auth) return auth.error;
 
-    const { productId } = await params;
-    const { quantity } = await request.json();
+    const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
 
-    if (!quantity || quantity < 1) {
-      return NextResponse.json({ message: 'quantity must be at least 1' }, { status: 400 });
+    await cart.populate('items.product');
+
+    return NextResponse.json({ cart }, { status: 200 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Server error';
+
+    return NextResponse.json(
+      { message: 'Server error', error: message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const auth = await getAuthUser(request);
+    if ('error' in auth) return auth.error;
+
+    const { productId, quantity } = await request.json();
+
+    if (!productId) {
+      return NextResponse.json({ message: 'productId is required' }, { status: 400 });
     }
+
+    const qty = quantity && quantity > 0 ? quantity : 1;
 
     const product = await Product.findById(productId);
     if (!product) {
       return NextResponse.json({ message: 'Product not found' }, { status: 404 });
     }
 
-    if (quantity > product.stock) {
+    const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
+    const existingItem = cart.items.find((i) => i.product.toString() === productId);
+    const nextQuantity = (existingItem?.quantity || 0) + qty;
+
+    if (nextQuantity > product.stock) {
       return NextResponse.json(
         {
           message:
@@ -43,41 +77,35 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-    const item = cart.items.find((i) => i.product.toString() === productId);
-
-    if (!item) {
-      return NextResponse.json({ message: 'Item not in cart' }, { status: 404 });
+    if (existingItem) {
+      existingItem.quantity = nextQuantity;
+    } else {
+      cart.items.push({ product: product._id, quantity: qty } as never);
     }
 
-    item.quantity = quantity;
     await cart.save();
     await cart.populate('items.product');
 
-    return NextResponse.json({ message: 'Cart updated', cart }, { status: 200 });
+    return NextResponse.json({ message: 'Added to cart', cart }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Server error';
     return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
+export async function DELETE(request: NextRequest) {
   try {
     await connectDB();
+
     const auth = await getAuthUser(request);
     if ('error' in auth) return auth.error;
 
-    const { productId } = await params;
     const cart = await getOrCreateCart(auth.user._id as Types.ObjectId);
-    const index = cart.items.findIndex((i) => i.product.toString() === productId);
-    if (index !== -1) {
-      cart.items.splice(index, 1);
-    }
-
+    cart.items.splice(0, cart.items.length);
     await cart.save();
     await cart.populate('items.product');
 
-    return NextResponse.json({ message: 'Item removed from cart', cart }, { status: 200 });
+    return NextResponse.json({ message: 'Cart cleared', cart }, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Server error';
     return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
