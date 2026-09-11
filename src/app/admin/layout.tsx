@@ -1,92 +1,76 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
-
-const TABS = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/categories", label: "Categories" },
-  { href: "/admin/orders", label: "Orders" },
-];
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const activeRef = useRef<HTMLAnchorElement>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // FIX (react-hooks/set-state-in-effect): reset the mobile menu when the
-  // route changes, without a setState-in-effect. Compare against the
-  // previous pathname during render and adjust state directly instead.
-  const [prevPathname, setPrevPathname] = useState(pathname);
-  if (pathname !== prevPathname) {
-    setPrevPathname(pathname);
-    setMobileMenuOpen(false);
-  }
-
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [pathname]);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <AdminGuard>
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
-      
-        <div className="flex items-center justify-between sm:block">
-          <h1 className="font-[family-name:var(--font-display)] text-xl italic text-ink sm:text-2xl md:text-3xl">
-            Admin Dashboard
-          </h1>
-          <button
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="rounded-lg p-2 text-ink hover:bg-brass/10 sm:hidden"
-            aria-label="Toggle admin menu"
-          >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        </div>
+      <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream lg:flex">
+        {/* Desktop sidebar */}
+        <aside className="hidden w-64 shrink-0 border-r-[3px] border-orange lg:block">
+          <div className="fixed h-screen w-64">
+            <AdminSidebar />
+          </div>
+        </aside>
 
-        {/* Mobile dropdown menu */}
-        {mobileMenuOpen && (
-          <nav className="mt-3 flex flex-col overflow-hidden rounded-xl border border-brass/30 bg-white sm:hidden">
-            {TABS.map((tab) => {
-              const active = pathname === tab.href;
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={`border-b border-brass/10 px-4 py-3 text-sm font-medium last:border-0 ${
-                    active ? "bg-rust/10 text-rust" : "text-ink/70 hover:bg-cream/60"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Mobile sidebar drawer */}
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <button
+              aria-label="Close menu overlay"
+              className="absolute inset-0 bg-ink/40 animate-fade-in"
+              onClick={() => setMobileOpen(false)}
+            />
+            <div className="animate-slide-in-right absolute right-0 top-0 h-full w-72 max-w-[80vw] shadow-xl">
+              <AdminSidebar onNavigate={() => setMobileOpen(false)} />
+            </div>
+          </div>
         )}
-        
-        <nav className="mt-6 hidden gap-2 overflow-x-auto border-b border-brass/30 sm:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {TABS.map((tab) => {
-            const active = pathname === tab.href;
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                ref={active ? activeRef : undefined}
-                className={`shrink-0 whitespace-nowrap rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  active ? "border-b-2 border-rust text-rust" : "text-ink/60 hover:text-rust"
-                }`}
-              >
-                {tab.label}
-              </Link>
-            );
-          })}
-        </nav>
 
-        <div className="mt-6 sm:mt-8">{children}</div>
+        <div className="min-w-0 flex-1">
+          {/* Top bar */}
+          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b-[3px] border-orange bg-white px-4 py-3 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="shrink-0 rounded-lg p-2 text-ink hover:bg-cream lg:hidden"
+                aria-label="Open admin menu"
+              >
+                <Menu size={20} />
+              </button>
+              <Link
+                href="/admin"
+                className="truncate font-[family-name:var(--font-display)] text-lg italic text-ink lg:hidden"
+              >
+                Auric Admin
+              </Link>
+            </div>
+
+            <div className="flex min-w-0 shrink-0 items-center gap-3">
+              <div className="hidden max-w-[160px] text-right sm:block">
+                <p className="truncate text-sm font-medium leading-tight text-ink">
+                  {user?.name || "Admin"}
+                </p>
+                <p className="truncate text-[11px] leading-tight text-ink/45">Administrator</p>
+              </div>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rust/10 text-sm font-semibold text-rust">
+                {(user?.name || "A").charAt(0).toUpperCase()}
+              </div>
+            </div>
+          </header>
+
+          <main className="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8">
+            {children}
+          </main>
+        </div>
       </div>
     </AdminGuard>
   );

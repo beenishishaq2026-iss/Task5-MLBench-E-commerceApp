@@ -153,6 +153,15 @@ export default function OrderConfirmationPage() {
               Back to Home
             </Link>
           </div>
+
+          <a
+            href={`${API_URL}/api/orders/${order._id}/invoice`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-rust hover:underline"
+          >
+            Download invoice (PDF)
+          </a>
         </div>
       </div>
     );
@@ -211,6 +220,17 @@ export default function OrderConfirmationPage() {
           <span>Total</span>
           <span>${order.totalPrice.toFixed(2)}</span>
         </div>
+
+        {order.isPaid && (
+          <a
+            href={`${API_URL}/api/orders/${order._id}/invoice`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-rust hover:underline"
+          >
+            Download invoice (PDF)
+          </a>
+        )}
       </div>
 
       <div className="mt-6 rounded-2xl border border-brass/20 bg-white p-6">
