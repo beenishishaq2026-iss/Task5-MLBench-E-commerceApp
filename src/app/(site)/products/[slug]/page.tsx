@@ -146,10 +146,10 @@ export default function ProductDetailsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 md:px-10 md:py-16">
+    <main className="mx-auto max-w-7xl px-6 py-4 md:px-10 md:py-6">
 
       {/* Breadcrumb */}
-      <div className="mb-10 text-sm text-ink/50">
+      <div className="mb-4 text-sm text-ink/50">
         <Link href="/products" className="hover:text-rust">
           Products
         </Link>
@@ -168,55 +168,28 @@ export default function ProductDetailsPage() {
         <span className="text-ink/70">{product.name}</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
 
         {/* ================= IMAGE GALLERY ================= */}
         <section>
-          <div className="relative aspect-[4/3] w-full max-h-[480px] overflow-hidden rounded-2xl bg-[#f7f5f0]">
-            {mainImage ? (
-              <Image
-                src={mainImage}
-                alt={product.name}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm text-ink/30">
-                No image available
-              </div>
-            )}
-          </div>
-
-          {/* Thumbnails */}
-          {product.images.length > 1 && (
-            <div className="mt-4 grid grid-cols-4 gap-3">
-              {product.images.map((img, index) => (
-                <button
-                  key={img.publicId}
-                  onClick={() => setActiveImageIndex(index)}
-                  className={`
-                    relative aspect-square overflow-hidden rounded-xl border
-                    transition
-                    ${
-                      index === activeImageIndex
-                        ? "border-rust ring-1 ring-rust"
-                        : "border-brass/20 hover:border-rust/50"
-                    }
-                  `}
-                >
-                  <Image
-                    src={img.url}
-                    alt={`${product.name} image ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="120px"
-                  />
-                </button>
-              ))}
+          <div className="mx-auto w-full max-w-[150px] rounded-3xl border-2 border-brass/25 bg-[#f7f5f0] p-2 shadow-sm">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white">
+              {mainImage ? (
+                <Image
+                  src={mainImage}
+                  alt={product.name}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 150px"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-ink/30">
+                  No image available
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </section>
 
         {/* ================= PRODUCT INFORMATION ================= */}
@@ -230,20 +203,24 @@ export default function ProductDetailsPage() {
             {product.category.name}
           </Link>
 
-          {/* Product name */}
-          <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-bold italic leading-tight text-ink md:text-5xl">
-            {product.name}
-          </h1>
+          {/* Product name + Brand */}
+          <div className="mt-1">
+            <h1 className="font-[family-name:var(--font-display)] text-4xl font-bold italic leading-tight text-ink md:text-5xl">
+              {product.name}
+            </h1>
 
-          {/* Brand */}
-          {product.brand && (
-            <p className="mt-2 text-sm text-ink/50">
-              by {product.brand}
-            </p>
-          )}
+            {product.brand && (
+              <span className="mt-2 inline-flex items-center gap-2 rounded-full border-2 border-rust/30 bg-rust/5 px-4 py-1.5 text-sm font-semibold uppercase tracking-wide text-rust">
+                Brand:
+                <span className="font-[family-name:var(--font-display)] text-lg font-bold italic normal-case tracking-normal text-ink">
+                  {product.brand}
+                </span>
+              </span>
+            )}
+          </div>
 
           {/* Rating */}
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-2 flex items-center gap-3">
             <div className="flex items-center gap-1 text-sm">
               <span className="text-lg">★</span>
               <span className="font-semibold">4.8</span>
@@ -257,7 +234,7 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* Price */}
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <span className="text-3xl font-semibold text-rust">
               ${currentPrice}
             </span>
@@ -276,7 +253,7 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* Stock */}
-          <div className="mt-5">
+          <div className="mt-2">
             {product.stock > 0 ? (
               <div className="flex items-center gap-2 text-sm font-medium text-green-700">
                 <span className="h-2 w-2 rounded-full bg-green-600" />
@@ -291,12 +268,12 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* Description */}
-          <p className="mt-7 max-w-xl text-[15px] leading-7 text-ink/70">
+          <p className="mt-3 max-w-xl text-[15px] leading-7 text-ink/70">
             {product.description}
           </p>
 
           {/* Product details */}
-          <div className="mt-8 border-t border-brass/20">
+          <div className="mt-3 border-t border-brass/20">
 
             {/* FIX (TS2322): removed the `"x" in product` checks — now
                that Product declares these fields as optional strings in
@@ -305,7 +282,7 @@ export default function ProductDetailsPage() {
 
             {/* Material */}
             {product.material && (
-              <div className="flex items-center justify-between border-b border-brass/20 py-4">
+              <div className="flex items-center justify-between border-b border-brass/20 py-2.5">
                 <span className="text-sm text-ink/50">
                   Material
                 </span>
@@ -318,7 +295,7 @@ export default function ProductDetailsPage() {
 
             {/* Fit */}
             {product.fit && (
-              <div className="flex items-center justify-between border-b border-brass/20 py-4">
+              <div className="flex items-center justify-between border-b border-brass/20 py-2.5">
                 <span className="text-sm text-ink/50">
                   Fit
                 </span>
@@ -331,7 +308,7 @@ export default function ProductDetailsPage() {
 
             {/* Sizes */}
             {product.sizes && (
-              <div className="flex items-center justify-between border-b border-brass/20 py-4">
+              <div className="flex items-center justify-between border-b border-brass/20 py-2.5">
                 <span className="text-sm text-ink/50">
                   Sizes
                 </span>
@@ -344,7 +321,7 @@ export default function ProductDetailsPage() {
 
             {/* Care */}
             {product.care && (
-              <div className="flex items-center justify-between border-b border-brass/20 py-4">
+              <div className="flex items-center justify-between border-b border-brass/20 py-2.5">
                 <span className="text-sm text-ink/50">
                   Care
                 </span>
@@ -357,26 +334,26 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* Quantity + Cart */}
-          <div className="mt-8 flex gap-3">
+          <div className="mt-3 flex items-center gap-3">
 
             <div className="flex items-center rounded-full border border-brass/30">
               <button
                 onClick={decreaseQty}
                 disabled={quantity <= 1}
-                className="px-4 py-3 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
+                className="px-4 py-4 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
                 aria-label="Decrease quantity"
               >
                 −
               </button>
 
-              <span className="w-8 text-center text-sm font-medium">
+              <span className="w-8 text-center text-base font-medium">
                 {quantity}
               </span>
 
               <button
                 onClick={increaseQty}
                 disabled={quantity >= product.stock}
-                className="px-4 py-3 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
+                className="px-4 py-4 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
                 aria-label="Increase quantity"
               >
                 +
@@ -386,9 +363,24 @@ export default function ProductDetailsPage() {
             <button
               onClick={handleAddToCart}
               disabled={product.stock === 0 || addingToCart}
-              className="flex-1 rounded-full bg-rust px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 rounded-full bg-rust px-8 py-4 text-base font-bold text-cream transition-colors hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {addingToCart ? "Adding..." : "Add to Cart"}
+              {addingToCart ? "Adding..." : "Add to Bag"}
+            </button>
+
+            <button
+              onClick={handleToggleWishlist}
+              aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+              className={`
+                flex h-14 w-14 shrink-0 items-center justify-center rounded-full border transition
+                ${
+                  inWishlist
+                    ? "border-rust bg-rust text-white"
+                    : "border-brass/30 text-ink/60 hover:border-rust hover:text-rust"
+                }
+              `}
+            >
+              {inWishlist ? "♥" : "♡"}
             </button>
           </div>
 
@@ -398,23 +390,6 @@ export default function ProductDetailsPage() {
               {cartMessage}
             </p>
           )}
-
-          {/* Wishlist */}
-          <button
-            onClick={handleToggleWishlist}
-            className={`
-              mt-3 w-full rounded-full border px-6 py-3 text-sm font-semibold transition
-              ${
-                inWishlist
-                  ? "border-rust bg-rust text-white"
-                  : "border-rust text-rust hover:bg-rust hover:text-white"
-              }
-            `}
-          >
-            {inWishlist
-              ? "♥ In Wishlist"
-              : "♡ Add to Wishlist"}
-          </button>
 
         </section>
       </div>

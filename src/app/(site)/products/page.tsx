@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TriangleAlert, X, SlidersHorizontal } from "lucide-react";
 import { API_URL } from "@/lib/api";
-import { ProductListResponse } from "@/types";
+import { ProductListResponse, Category } from "@/types";
 import ProductCard from "@/components/products/ProductCard";
 import ProductFilters from "@/components/products/ProductFilters";
 import ProductSort from "@/components/products/ProductSort";
@@ -21,6 +21,9 @@ function ProductsListing() {
   const searchParams = useSearchParams();
 
   const activeSearch = searchParams.get("search") || "";
+  const selectedCategoryIds = (searchParams.get("category") || "")
+    .split(",")
+    .filter(Boolean);
 
   const [searchText, setSearchText] = useState(activeSearch);
   const [gridCols, setGridCols] = useState(4);
@@ -30,6 +33,33 @@ function ProductsListing() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // needed to turn selected category ids into readable names for the chip row
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch(`${API_URL}/api/categories`);
+        const data = await res.json();
+        setCategories(data.categories || []);
+      } catch (err) {
+        console.log("could not load categories", err);
+      }
+    }
+    loadCategories();
+  }, []);
+
+  function removeCategoryFilter(id: string) {
+    const remaining = selectedCategoryIds.filter((catId) => catId !== id);
+    const params = new URLSearchParams(searchParams.toString());
+    if (remaining.length > 0) {
+      params.set("category", remaining.join(","));
+    } else {
+      params.delete("category");
+    }
+    params.delete("page");
+    router.push(pathname + "?" + params.toString());
+  }
 
   // count of currently-active filters, shown as a badge on the mobile Filters button
   const activeFilterCount = [
@@ -39,6 +69,38 @@ function ProductsListing() {
     searchParams.get("maxPrice"),
     searchParams.get("inStock"),
   ].filter(Boolean).length;
+
+  const selectedBrand = searchParams.get("brand") || "";
+  const minPrice = searchParams.get("minPrice") || "";
+  const maxPrice = searchParams.get("maxPrice") || "";
+  const inStockOnly = searchParams.get("inStock") === "true";
+  const hasAnyFilter =
+    Boolean(activeSearch) ||
+    selectedCategoryIds.length > 0 ||
+    Boolean(selectedBrand) ||
+    Boolean(minPrice) ||
+    Boolean(maxPrice) ||
+    inStockOnly;
+
+  function removeParam(key: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete(key);
+    params.delete("page");
+    router.push(pathname + "?" + params.toString());
+  }
+
+  function removePriceFilter() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("minPrice");
+    params.delete("maxPrice");
+    params.delete("page");
+    router.push(pathname + "?" + params.toString());
+  }
+
+  function clearAllFilters() {
+    setSearchText("");
+    router.push(pathname);
+  }
 
   const [syncedSearch, setSyncedSearch] = useState(activeSearch);
   if (activeSearch !== syncedSearch) {
@@ -135,18 +197,85 @@ function ProductsListing() {
         />
       </div>
 
-      {activeSearch && (
-        <div className="mb-6 flex items-center gap-2">
-          <span className="inline-flex items-center gap-2 rounded-full bg-brass/10 px-4 py-1.5 text-sm font-medium text-ink">
-            Search: {activeSearch}
-            <button
-              onClick={handleClearSearch}
-              aria-label="Clear search filter"
-              className="text-ink/50 hover:text-rust"
-            >
-              <X size={14} />
-            </button>
-          </span>
+      {hasAnyFilter && (
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          {selectedCategoryIds.map((id) => {
+            const cat = categories.find((c) => c._id === id);
+            return (
+              <span
+                key={id}
+                className="inline-flex items-center gap-2 rounded-full bg-rust/10 px-4 py-1.5 text-sm font-medium text-rust"
+              >
+                Category: {cat ? cat.name : "..."}
+                <button
+                  onClick={() => removeCategoryFilter(id)}
+                  aria-label={`Remove ${cat ? cat.name : "category"} filter`}
+                  className="text-rust/60 hover:text-rust"
+                >
+                  <X size={14} />
+                </button>
+              </span>
+            );
+          })}
+
+          {selectedBrand && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-rust/10 px-4 py-1.5 text-sm font-medium text-rust">
+              Brand: {selectedBrand}
+              <button
+                onClick={() => removeParam("brand")}
+                aria-label="Remove brand filter"
+                className="text-rust/60 hover:text-rust"
+              >
+                <X size={14} />
+              </button>
+            </span>
+          )}
+
+          {(minPrice || maxPrice) && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-brass/10 px-4 py-1.5 text-sm font-medium text-ink">
+              Price: ${minPrice || "0"} – ${maxPrice || "∞"}
+              <button
+                onClick={removePriceFilter}
+                aria-label="Remove price filter"
+                className="text-ink/50 hover:text-rust"
+              >
+                <X size={14} />
+              </button>
+            </span>
+          )}
+
+          {inStockOnly && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-brass/10 px-4 py-1.5 text-sm font-medium text-ink">
+              In stock only
+              <button
+                onClick={() => removeParam("inStock")}
+                aria-label="Remove in stock filter"
+                className="text-ink/50 hover:text-rust"
+              >
+                <X size={14} />
+              </button>
+            </span>
+          )}
+
+          {activeSearch && (
+            <span className="inline-flex items-center gap-2 rounded-full bg-brass/10 px-4 py-1.5 text-sm font-medium text-ink">
+              Search: {activeSearch}
+              <button
+                onClick={handleClearSearch}
+                aria-label="Clear search filter"
+                className="text-ink/50 hover:text-rust"
+              >
+                <X size={14} />
+              </button>
+            </span>
+          )}
+
+          <button
+            onClick={clearAllFilters}
+            className="ml-1 inline-flex items-center gap-1 rounded-full bg-rust px-4 py-1.5 text-sm font-semibold text-cream transition-colors hover:bg-rust-dark"
+          >
+            Clear All
+          </button>
         </div>
       )}
 
@@ -160,12 +289,12 @@ function ProductsListing() {
                 ? `Showing ${productData.products.length} of ${productData.total} products`
                 : ""}
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:flex-nowrap">
               {/* mobile-only trigger: the desktop sidebar handles filters on lg+ */}
               <button
                 type="button"
                 onClick={() => setFiltersOpen(true)}
-                className="relative flex items-center gap-2 rounded-full border border-brass/30 bg-white px-4 py-2 text-sm font-medium text-ink hover:border-rust/40 lg:hidden"
+                className="relative flex items-center gap-2 rounded-full border border-rust/40 bg-white px-4 py-2 text-sm font-medium text-rust hover:bg-rust/5 lg:hidden"
               >
                 <SlidersHorizontal size={16} />
                 Filters
@@ -211,7 +340,7 @@ function ProductsListing() {
 
           {!loading && !errorMsg && productData && productData.products.length === 0 && (
             <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-3xl border border-brass/20 bg-gradient-to-b from-cream/70 to-white px-6 text-center">
-              <EmptyCartIllustration className="h-40 w-40" />
+              <EmptyCartIllustration className="h-24 w-24" size={96} />
               <div>
                 <p className="font-[family-name:var(--font-display)] text-2xl italic text-ink">
                   No products found

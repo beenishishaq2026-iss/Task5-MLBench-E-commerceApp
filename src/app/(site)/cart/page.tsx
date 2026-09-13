@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import LoadingState from "@/components/ui/LoadingState";
+import { ShoppingBag, ArrowRight } from "lucide-react";
 
 export default function CartPage() {
   const { user, loading: authLoading } = useAuth();
@@ -65,11 +66,33 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
-        <p className="text-ink/60">Your cart is empty.</p>
-        <Link href="/products" className="text-sm font-medium text-rust hover:underline">
-          Browse products
-        </Link>
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
+        <h1 className="font-[family-name:var(--font-display)] text-3xl italic text-ink sm:text-4xl">
+          Your Cart
+        </h1>
+        <p className="mt-1 text-sm text-ink/50">0 items</p>
+
+        <div className="mt-8 flex flex-col items-center justify-center rounded-2xl border border-brass/20 bg-white px-6 py-20 text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-cream text-rust">
+            <ShoppingBag size={28} />
+          </span>
+
+          <h2 className="mt-6 text-lg font-semibold text-ink">
+            Your cart is empty
+          </h2>
+          <p className="mt-2 max-w-sm text-sm text-ink/60">
+            Looks like you haven&apos;t added anything yet. Discover our
+            curated essentials and current deals.
+          </p>
+
+          <Link
+            href="/products"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-rust px-6 py-3 text-sm font-semibold text-cream transition-colors hover:bg-rust-dark"
+          >
+            Explore All Products
+            <ArrowRight size={16} />
+          </Link>
+        </div>
       </div>
     );
   }

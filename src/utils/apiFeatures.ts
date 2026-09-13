@@ -1,4 +1,5 @@
 import { Query } from 'mongoose';
+import { escapeRegex } from './escapeRegex';
 
 type QueryString = Record<string, string>;
 
@@ -20,9 +21,15 @@ class APIFeatures<T> {
   }
 
   search(): this {
-    if (this.queryString.search) {
+    const term = this.queryString.search?.trim();
+    if (term) {
+      // Case-insensitive partial match across name/brand/description so
+      // results start appearing as soon as the user types a few
+      // characters (type-ahead), rather than requiring a full whole-word
+      // match the way MongoDB's $text search does.
+      const regex = new RegExp(escapeRegex(term), 'i');
       this.query = this.query.find({
-        $text: { $search: this.queryString.search },
+        $or: [{ name: regex }, { brand: regex }, { description: regex }],
       } as Record<string, unknown>);
     }
     return this;
