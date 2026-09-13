@@ -90,3 +90,13 @@ export interface Order {
   paymentMethod: string;
   createdAt: string;
 }
+
+export interface Review {
+  _id: string;
+  product: string;
+  user: { _id: string; name: string } | string;
+  rating: number;
+  comment: string;
+  verifiedPurchase: boolean;
+  createdAt: string;
+}

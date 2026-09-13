@@ -1,6 +1,19 @@
-export default function EmptyCartIllustration({ className = "h-40 w-40" }: { className?: string }) {
+export default function EmptyCartIllustration({
+  className = "h-24 w-24",
+  size = 96,
+}: {
+  className?: string;
+  size?: number;
+}) {
   return (
-    <svg viewBox="0 0 400 400" className={className} role="img" aria-label="No products found">
+    <svg
+      viewBox="0 0 400 400"
+      width={size}
+      height={size}
+      className={className}
+      role="img"
+      aria-label="No products found"
+    >
       <circle cx="200" cy="195" r="150" fill="#F3E5D3" />
       <ellipse cx="200" cy="350" rx="112" ry="14" fill="#A98A4E" opacity="0.25" />
       <line x1="121" y1="273" x2="133" y2="294" stroke="#2B2420" strokeWidth="6" strokeLinecap="round" />

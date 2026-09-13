@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -9,14 +8,7 @@ import {
   Heart,
   ShoppingBag,
   User,
-  Shirt,
-  Baby,
-  Sparkles,
-  Headphones,
-  Sprout,
-  UtensilsCrossed,
-  Tent,
-  Tag,
+  Search,
   ArrowRight,
   ChevronDown,
   LogIn,
@@ -29,33 +21,22 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { API_URL } from "@/lib/api";
 import { Category } from "@/types";
-import SearchBar from "@/components/products/SearchBar";
+import SearchOverlay from "@/components/layout/SearchOverlay";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import { getCategoryIcon } from "@/utils/categoryIcons";
 
 const navLinks = [
   { label: "Products", href: "/products" },
   { label: "Featured", href: "/#deals" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
-
-const categoryIcons: Record<string, React.ElementType> = {
-  apparel: Shirt,
-  baby: Baby,
-  beauty: Sparkles,
-  electronics: Headphones,
-  "home & living": Sprout,
-  kitchen: UtensilsCrossed,
-  outdoors: Tent,
-};
-
-function getCategoryIcon(name: string) {
-  return categoryIcons[name.trim().toLowerCase()] || Tag;
-}
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
-  const [mobileSearch, setMobileSearch] = useState("");
+  const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const { user, loading, logout } = useAuth();
   const { itemCount } = useCart();
@@ -63,10 +44,6 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // FIX (react-hooks/set-state-in-effect): reset the mobile drawer when the
-  // route changes. Instead of an effect that calls setState synchronously,
-  // React's recommended pattern is to compare against the previous value
-  // during render and adjust state directly — no effect needed.
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
@@ -101,16 +78,10 @@ export default function Navbar() {
     router.push("/");
   };
 
-  const handleMobileSearch = (value: string) => {
-    const query = value.trim();
-    setOpen(false);
-    router.push(query ? `/products?search=${encodeURIComponent(query)}` : "/products");
-  };
-
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-brass/30 bg-cream/90 backdrop-blur-sm">
-        <nav className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-6 px-6 py-4">
+        <nav className="relative mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-6 px-6 py-4">
         <Link
           href="/"
           className="font-[family-name:var(--font-display)] text-2xl italic tracking-tight text-ink"
@@ -156,7 +127,7 @@ export default function Navbar() {
                       return (
                         <Link
                           key={cat._id}
-                          href={`/products?category=${cat._id}`}
+                          href={`/categories/${cat.slug}`}
                           className="group flex items-start gap-3 rounded-xl p-2 transition-colors hover:bg-cream"
                         >
                           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-rust group-hover:bg-rust group-hover:text-cream">
@@ -203,40 +174,52 @@ export default function Navbar() {
               <>
                 <Link
                   href="/profile"
-                  className="flex items-center gap-2 text-sm font-medium text-ink/80 hover:text-rust"
+                  className="flex h-6 items-center gap-2 text-sm font-medium leading-none text-ink/80 hover:text-rust"
                 >
-                  <User size={18} />
-                  {user.name.split(" ")[0]}
+                  <User size={20} className="shrink-0" />
+                  <span>{user.name.split(" ")[0]}</span>
                 </Link>
                 {user.role === "admin" && (
                   <Link
                     href="/admin"
-                    className="rounded-full border border-rust px-3 py-1 text-sm font-medium text-rust hover:bg-rust hover:text-white"
+                    className="flex h-6 items-center rounded-full border border-rust px-3 text-sm font-medium leading-none text-rust hover:bg-rust hover:text-white"
                   >
                     Admin
                   </Link>
                 )}
                 <button
                   onClick={handleLogout}
-                  className="text-sm font-medium text-ink/80 hover:text-rust"
+                  className="flex h-6 items-center text-sm font-medium leading-none text-ink/80 hover:text-rust"
                 >
                   Log out
                 </button>
               </>
             ) : (
               <>
-                <Link href="/login" className="text-sm font-medium text-ink/80 hover:text-rust">
+                <Link
+                  href="/login"
+                  className="flex h-6 items-center text-sm font-medium leading-none text-ink/80 hover:text-rust"
+                >
                   Log in
                 </Link>
                 <Link
                   href="/signup"
-                  className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-cream transition-colors hover:bg-rust"
+                  className="flex h-6 items-center rounded-full bg-ink px-4 text-sm font-medium leading-none text-cream transition-colors hover:bg-rust"
                 >
                   Sign up
                 </Link>
               </>
             )}
-            <Link href="/wishlist" aria-label="Wishlist" className="relative text-ink/80 hover:text-rust">
+            {!loading && user && (
+              <div className="flex h-6 w-6 items-center justify-center">
+                <NotificationBell />
+              </div>
+            )}
+            <Link
+              href="/wishlist"
+              aria-label="Wishlist"
+              className="relative flex h-6 w-6 items-center justify-center text-ink/80 hover:text-rust"
+            >
               <Heart size={20} />
               {wishlistProducts.length > 0 && (
                 <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-semibold text-white">
@@ -244,7 +227,11 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <Link href="/cart" aria-label="Cart" className="relative text-ink/80 hover:text-rust">
+            <Link
+              href="/cart"
+              aria-label="Cart"
+              className="relative flex h-6 w-6 items-center justify-center text-ink/80 hover:text-rust"
+            >
               <ShoppingBag size={20} />
               {itemCount > 0 && (
                 <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-semibold text-white">
@@ -252,29 +239,69 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+            <button
+              type="button"
+              onClick={() => setSearchOverlayOpen((v) => !v)}
+              aria-label="Search"
+              className={`flex h-6 w-6 items-center justify-center transition-colors ${
+                searchOverlayOpen ? "text-rust" : "text-ink/80 hover:text-rust"
+              }`}
+            >
+              <Search size={20} />
+            </button>
           </div>
 
-          <button
-            className="md:hidden"
-            onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
-          >
-            {open ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* mobile: search + notification bell sit next to the hamburger toggle */}
+          <div className="flex items-center gap-4 md:hidden">
+            <button
+              type="button"
+              onClick={() => {
+                setSearchOverlayOpen((v) => !v);
+                setOpen(false);
+              }}
+              aria-label="Search"
+              className={`flex h-6 w-6 items-center justify-center transition-colors ${
+                searchOverlayOpen ? "text-rust" : "text-ink/80 hover:text-rust"
+              }`}
+            >
+              <Search size={20} />
+            </button>
+            {!loading && user && (
+              <div className="flex h-6 w-6 items-center justify-center">
+                <NotificationBell />
+              </div>
+            )}
+            <button
+              onClick={() => {
+                setOpen(!open);
+                setSearchOverlayOpen(false);
+              }}
+              aria-label="Toggle menu"
+              className="flex h-6 w-6 items-center justify-center text-ink/80"
+            >
+              {open ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
+
+        {searchOverlayOpen && (
+          <SearchOverlay
+            open={searchOverlayOpen}
+            onClose={() => setSearchOverlayOpen(false)}
+            categories={categories}
+          />
+        )}
       </nav>
       </header>
 
       {open && (
         <>
-          {/* backdrop */}
           <div
             className="animate-fade-in fixed inset-0 z-40 bg-ink/40 backdrop-blur-[2px] md:hidden"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
 
-          {/* slide-out drawer */}
           <div className="animate-slide-in-right fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-cream shadow-2xl md:hidden">
             <div className="flex items-center justify-between border-b border-brass/30 px-6 py-5">
               <Link
@@ -294,14 +321,6 @@ export default function Navbar() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5">
-              <SearchBar
-                value={mobileSearch}
-                onChange={setMobileSearch}
-                onSubmit={handleMobileSearch}
-                onClear={() => setMobileSearch("")}
-                className="mb-6"
-              />
-
               <ul className="flex flex-col divide-y divide-brass/10">
                 <li>
                   <button
@@ -323,7 +342,7 @@ export default function Navbar() {
                       {categories.map((cat) => (
                         <li key={cat._id}>
                           <Link
-                            href={`/products?category=${cat._id}`}
+                            href={`/categories/${cat.slug}`}
                             onClick={() => setOpen(false)}
                             className="block py-2 text-sm text-ink/60 hover:text-rust"
                           >
@@ -376,7 +395,7 @@ export default function Navbar() {
                       Wishlist
                     </span>
                     {wishlistProducts.length > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-[11px] font-semibold text-cream">
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rust px-1.5 text-[11px] font-semibold text-cream">
                         {wishlistProducts.length}
                       </span>
                     )}
@@ -393,7 +412,7 @@ export default function Navbar() {
                       Shopping Cart
                     </span>
                     {itemCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-[11px] font-semibold text-cream">
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-rust px-1.5 text-[11px] font-semibold text-cream">
                         {itemCount}
                       </span>
                     )}
@@ -432,19 +451,38 @@ export default function Navbar() {
             {!loading && (
               <div className="border-t border-brass/30 px-6 py-5">
                 {user ? (
-                  <button
-                    onClick={handleLogout}
-                    className="flex w-full items-center justify-center gap-2 rounded-full border border-brass/40 px-4 py-3 text-sm font-semibold text-ink transition-colors hover:border-rust hover:text-rust"
-                  >
-                    <LogOut size={16} />
-                    Log out
-                  </button>
+                  <div className="space-y-3">
+                    <Link
+                      href="/profile"
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 rounded-2xl border border-brass/20 bg-white/60 px-3 py-2.5 transition-colors hover:border-rust/40"
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rust text-sm font-semibold uppercase text-cream">
+                        {user.name.charAt(0)}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-ink">
+                          {user.name}
+                        </span>
+                        <span className="block truncate text-xs text-ink/50">
+                          {user.email}
+                        </span>
+                      </span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center justify-center gap-2 rounded-full bg-rust px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-rust-dark"
+                    >
+                      <LogOut size={16} />
+                      Log out
+                    </button>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     <Link
                       href="/login"
                       onClick={() => setOpen(false)}
-                      className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-4 py-3 text-sm font-semibold text-cream transition-colors hover:bg-rust"
+                      className="flex w-full items-center justify-center gap-2 rounded-full bg-rust px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-rust-dark"
                     >
                       <LogIn size={16} />
                       Sign In

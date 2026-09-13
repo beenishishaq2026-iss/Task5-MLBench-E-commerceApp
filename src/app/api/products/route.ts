@@ -5,6 +5,7 @@ import Category from '@/models/Category';
 import slugify from '@/utils/slugify';
 import { uploadImage } from '@/utils/cloudinary';
 import APIFeatures from '@/utils/apiFeatures';
+import { escapeRegex } from '@/utils/escapeRegex';
 import { getAuthUser, forbidden } from '@/lib/auth';
 import { parseMultipleImages } from '@/utils/upload';
 import type { IProduct } from '@/models/Product';
@@ -16,7 +17,7 @@ interface ProductQueryFilters {
   price?: { $gte?: number; $lte?: number };
   stock?: { $gt: number };
   isFeatured?: boolean;
-  $text?: { $search: string };
+  $or?: Array<Record<string, RegExp>>;
 }
 
 export async function GET(request: NextRequest) {
@@ -69,7 +70,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (query.search) {
-      totalFilters.$text = { $search: query.search };
+      const regex = new RegExp(escapeRegex(query.search.trim()), 'i');
+      totalFilters.$or = [{ name: regex }, { brand: regex }, { description: regex }];
     }
 
     const total = await Product.countDocuments(totalFilters);

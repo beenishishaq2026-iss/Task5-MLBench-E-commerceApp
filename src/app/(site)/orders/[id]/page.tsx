@@ -248,7 +248,7 @@ export default function OrderConfirmationPage() {
 
       <Link
         href="/products"
-        className="mt-8 inline-block rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:bg-rust"
+        className="mt-8 inline-block rounded-full bg-rust px-6 py-3 text-sm font-semibold text-cream hover:bg-rust-dark"
       >
         Continue Shopping
       </Link>

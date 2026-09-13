@@ -53,7 +53,7 @@ export default function GridViewToggle({ value, onChange }: GridViewToggleProps)
             "flex h-8 w-8 items-center justify-center rounded-full transition-colors " +
             (cols >= 3 ? "hidden sm:flex " : "") +
             (value === cols
-              ? "bg-ink text-cream"
+              ? "bg-ink/75 text-cream"
               : "text-ink/50 hover:text-rust")
           }
         >

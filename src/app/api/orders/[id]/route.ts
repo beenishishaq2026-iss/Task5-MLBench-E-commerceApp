@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 import { getAuthUser, forbidden } from '@/lib/auth';
+import { notifyUser } from '@/utils/notify';
 
 const VALID_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
 
@@ -78,9 +79,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     await order.save();
 
+    await notifyUser(order.user, {
+      type: 'order-status',
+      title: 'Order status updated',
+      message: `Your order #${order._id.toString().slice(-6)} is now "${status}".`,
+      link: `/orders/${order._id}`,
+    });
+
     return NextResponse.json({ message: 'Order status updated', order }, { status: 200 });
- } catch (error) {
-  const message = error instanceof Error ? error.message : "Server error";
-  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
-}
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
+  }
 }

@@ -139,7 +139,7 @@ export default async function Home() {
             {categories.map((cat) => (
               <Link
                 key={cat._id}
-                href={`/products?category=${cat._id}`}
+               href={`/categories/${cat.slug}`}
                 className="group overflow-hidden rounded-2xl border border-brass/30 bg-white transition-all hover:border-rust hover:shadow-md"
               >
                 <div className="relative h-28 w-full overflow-hidden bg-cream">
