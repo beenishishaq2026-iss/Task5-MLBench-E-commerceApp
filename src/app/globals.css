@@ -14,6 +14,127 @@
   --font-body: "Inter", sans-serif;
 }
 
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.divider-signature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.divider-signature::before,
+.divider-signature::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-brass);
+}
+
+/* thin themed scrollbar for the filter lists (category / brand) */
+.filter-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #6b6b6b transparent;
+}
+.filter-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.filter-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.filter-scroll::-webkit-scrollbar-thumb {
+  background-color: #6b6b6b;
+  border-radius: 9999px;
+}
+.divider-signature .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: var(--color-rust);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.7s ease-out both;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s ease-out both;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.25s ease-out both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out both;
+}@import "tailwindcss";
+
+@theme {
+  --color-ink: #2B2420;
+  --color-cream: #FBF6EE;
+  --color-rust: #B5502D;
+  --color-rust-dark: #963F22;
+  --color-brass: #A98A4E;
+  --color-white: #FFFFFF;
+  --color-orange: #E07A3E;
+  --color-orange-dark: #C4632B;
+
+  --font-display: "Fraunces", serif;
+  --font-body: "Inter", sans-serif;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--color-cream);
   color: var(--color-ink);

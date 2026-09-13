@@ -18,6 +18,7 @@ interface WishlistContextValue {
   toggleWishlist: (productId: string) => Promise<void>;
   isInWishlist: (productId: string) => boolean;
   refreshWishlist: () => Promise<void>;
+  clearWishlist: () => Promise<void>;
 }
 
 const WishlistContext = createContext<WishlistContextValue | undefined>(
@@ -83,9 +84,22 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function clearWishlist() {
+    const ids = products.map((p) => p._id);
+    await Promise.all(
+      ids.map((id) =>
+        fetch(`${API_URL}/api/wishlist/${id}`, {
+          method: "DELETE",
+          credentials: "include",
+        })
+      )
+    );
+    setProducts([]);
+  }
+
   return (
     <WishlistContext.Provider
-      value={{ products, loading, toggleWishlist, isInWishlist, refreshWishlist }}
+      value={{ products, loading, toggleWishlist, isInWishlist, refreshWishlist, clearWishlist }}
     >
       {children}
     </WishlistContext.Provider>

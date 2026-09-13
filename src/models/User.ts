@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password: string;
   role: 'user';
   isVerified: boolean;
+  fcmTokens: string[];
   otp?: string;
   otpExpires?: Date;
   resetPasswordOtp?: string;
@@ -43,6 +44,10 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    fcmTokens: {
+  type: [String],
+  default: [],
+},
     otp: {
       type: String,
       select: false,

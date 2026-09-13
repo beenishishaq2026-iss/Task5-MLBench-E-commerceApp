@@ -180,6 +180,18 @@ useEffect(() => {
                           </select>
                         </div>
 
+                        {order.isPaid && (
+                          <a
+                            href={`${API_URL}/api/orders/${order._id}/invoice`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-block text-xs font-medium text-rust hover:underline"
+                          >
+                            Download invoice (PDF)
+                          </a>
+                        )}
+
                         <p className="text-xs text-ink/40">
                           Placed {new Date(order.createdAt).toLocaleDateString()}
                         </p>
@@ -274,6 +286,17 @@ useEffect(() => {
                                     <br />
                                     {order.shippingAddress.phone}
                                   </p>
+                                  {order.isPaid && (
+                                    <a
+                                      href={`${API_URL}/api/orders/${order._id}/invoice`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="mt-3 inline-block text-xs font-medium text-rust hover:underline"
+                                    >
+                                      Download invoice (PDF)
+                                    </a>
+                                  )}
                                 </div>
                               </div>
                             </td>

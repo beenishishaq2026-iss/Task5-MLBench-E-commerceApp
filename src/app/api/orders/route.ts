@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Order from '@/models/Order';
-import Cart from '@/models/Cart';
 import Product from '@/models/Product';
-import type { IProduct } from '@/models/Product';
+import Cart from '@/models/Cart';
 import { getAuthUser, forbidden } from '@/lib/auth';
+import { notifyAdmins } from '@/utils/notify';
 
 interface PopulatedCartItem {
-  product: IProduct;
+  product: {
+    _id: string;
+    name: string;
+    price: number;
+    discountPrice?: number;
+    stock: number;
+    isActive: boolean;
+    images: { url: string }[];
+  };
   quantity: number;
 }
 
@@ -19,12 +27,12 @@ export async function GET(request: NextRequest) {
     if (auth.user.role !== 'admin') return forbidden();
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10);
+    const status = searchParams.get('status');
 
-const filter: Record<string, unknown> = {};
-    if (status && status !== 'all') {
+    const filter: Record<string, unknown> = {};
+    if (status) {
       filter.status = status;
     }
 
@@ -97,9 +105,7 @@ export async function POST(request: NextRequest) {
 
     if (unavailable.length > 0) {
       return NextResponse.json(
-        {
-          message: `${unavailable.join(', ')} is no longer available. Please remove it from your cart.`,
-        },
+        { message: `${unavailable.join(', ')} is no longer available. Please remove it from your cart.` },
         { status: 400 }
       );
     }
@@ -128,14 +134,11 @@ export async function POST(request: NextRequest) {
       );
 
       if (!updated) {
-        
         for (const done of decremented) {
           await Product.findByIdAndUpdate(done.productId, { $inc: { stock: done.quantity } });
         }
         return NextResponse.json(
-          {
-            message: `No more products available. "${item.product.name}" was just sold out. Please update your cart.`,
-          },
+          { message: `No more products available. "${item.product.name}" was just sold out. Please update your cart.` },
           { status: 409 }
         );
       }
@@ -170,17 +173,24 @@ export async function POST(request: NextRequest) {
         totalPrice: itemsPrice,
       });
     } catch (err) {
-      // Order creation failed after stock was already deducted — roll it back.
       for (const done of decremented) {
         await Product.findByIdAndUpdate(done.productId, { $inc: { stock: done.quantity } });
       }
       throw err;
     }
 
+    await Cart.findOneAndUpdate({ user: auth.user._id }, { items: [] });
+
+    await notifyAdmins({
+      type: 'new-order',
+      title: 'New order placed',
+      message: `Order #${order._id.toString().slice(-6)} — $${order.totalPrice.toFixed(2)}`,
+      link: `/admin/orders`,
+    });
 
     return NextResponse.json({ message: 'Order placed successfully', order }, { status: 201 });
- } catch (error) {
-  const message = error instanceof Error ? error.message : "Server error";
-  return NextResponse.json({ message: "Server error", error: message }, { status: 500 });
-}
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error';
+    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
+  }
 }
