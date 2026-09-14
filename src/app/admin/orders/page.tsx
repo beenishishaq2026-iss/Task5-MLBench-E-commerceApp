@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, Fragment } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ClipboardList } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Order } from "@/types";
 import { Spinner } from "@/components/ui/LoadingState";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const STATUS_OPTIONS = ["pending", "paid", "shipped", "delivered", "cancelled"] as const;
 
@@ -78,12 +79,15 @@ useEffect(() => {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-ink">Orders</h2>
+      <AdminPageHeader
+        icon={ClipboardList}
+        title="Orders"
+        description="Track and update customer orders"
+      >
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-brass/30 px-3 py-2 text-sm focus:border-rust focus:outline-none"
+          className="rounded-lg border border-brass/30 bg-white px-3 py-2.5 text-sm focus:border-rust focus:outline-none"
         >
           <option value="all">All statuses</option>
           {STATUS_OPTIONS.map((s) => (
@@ -92,7 +96,7 @@ useEffect(() => {
             </option>
           ))}
         </select>
-      </div>
+      </AdminPageHeader>
 
       {error && (
         <p className="mt-4 rounded-xl border border-rust/30 bg-rust/10 px-4 py-3 text-sm text-rust-dark">
@@ -100,7 +104,7 @@ useEffect(() => {
         </p>
       )}
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-brass/30 bg-white">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-brass/20 bg-white shadow-[0_1px_3px_rgba(43,36,32,0.06)]">
         {loading ? (
           <div className="flex items-center justify-center p-10">
             <Spinner />

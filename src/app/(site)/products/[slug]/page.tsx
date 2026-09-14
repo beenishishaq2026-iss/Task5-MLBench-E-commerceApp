@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import LoadingState from "@/components/ui/LoadingState";
+import ReviewsSection from "@/components/products/ReviewsSection";
 
 export default function ProductDetailsPage() {
   const params = useParams<{ slug: string }>();
@@ -31,6 +32,7 @@ export default function ProductDetailsPage() {
     async function fetchProduct() {
       setLoading(true);
       setErrorMsg("");
+      setActiveImageIndex(0);
 
       try {
         const res = await fetch(`${API_URL}/api/products/${params.slug}`);
@@ -93,9 +95,6 @@ export default function ProductDetailsPage() {
   const mainImage = product.images[activeImageIndex]?.url;
   const inWishlist = isInWishlist(product._id);
 
-  // FIX (TS18047): these are separate nested function declarations, so
-  // TypeScript does not carry the `!product` narrowing from the early
-  // return above into their bodies. Each one needs its own guard.
   function increaseQty() {
     if (!product) return;
     if (quantity < product.stock) {
@@ -122,7 +121,7 @@ export default function ProductDetailsPage() {
 
     try {
       await addToCart(product._id, quantity);
-      setCartMessage("Added to cart!");
+      setCartMessage("Added to bag!");
     } catch (err) {
       setCartMessage(
         err instanceof Error
@@ -169,10 +168,8 @@ export default function ProductDetailsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-
-        {/* ================= IMAGE GALLERY ================= */}
         <section>
-          <div className="mx-auto w-full max-w-[150px] rounded-3xl border-2 border-brass/25 bg-[#f7f5f0] p-2 shadow-sm">
+          <div className="mx-auto w-full max-w-lg rounded-3xl border-2 border-brass/25 bg-[#f7f5f0] p-2 shadow-sm">
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white">
               {mainImage ? (
                 <Image
@@ -181,7 +178,7 @@ export default function ProductDetailsPage() {
                   fill
                   priority
                   className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 150px"
+                  sizes="(max-width: 1024px) 100vw, 512px"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-ink/30">
@@ -190,9 +187,36 @@ export default function ProductDetailsPage() {
               )}
             </div>
           </div>
+
+          {product.images.length > 1 && (
+            <div className="mx-auto mt-3 flex w-full max-w-lg gap-2 overflow-x-auto px-1">
+              {product.images.map((img, index) => (
+                <button
+                  key={img.publicId || img.url}
+                  type="button"
+                  onClick={() => setActiveImageIndex(index)}
+                  aria-label={`View image ${index + 1} of ${product.images.length}`}
+                  aria-current={index === activeImageIndex}
+                  className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-colors ${
+                    index === activeImageIndex
+                      ? "border-rust"
+                      : "border-brass/25 hover:border-rust/50"
+                  }`}
+                >
+                  <Image
+                    src={img.url}
+                    alt={`${product.name} thumbnail ${index + 1}`}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* ================= PRODUCT INFORMATION ================= */}
+    
         <section className="flex flex-col">
 
           {/* Category */}
@@ -275,11 +299,6 @@ export default function ProductDetailsPage() {
           {/* Product details */}
           <div className="mt-3 border-t border-brass/20">
 
-            {/* FIX (TS2322): removed the `"x" in product` checks — now
-               that Product declares these fields as optional strings in
-               src/types/index.ts, a plain truthy check is enough and
-               types correctly. */}
-
             {/* Material */}
             {product.material && (
               <div className="flex items-center justify-between border-b border-brass/20 py-2.5">
@@ -334,36 +353,54 @@ export default function ProductDetailsPage() {
           </div>
 
           {/* Quantity + Cart */}
-          <div className="mt-3 flex items-center gap-3">
+                    {/* Quantity + Cart */}
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
 
-            <div className="flex items-center rounded-full border border-brass/30">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center rounded-full border border-brass/30">
+                <button
+                  onClick={decreaseQty}
+                  disabled={quantity <= 1}
+                  className="px-4 py-4 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+
+                <span className="w-8 text-center text-base font-medium">
+                  {quantity}
+                </span>
+
+                <button
+                  onClick={increaseQty}
+                  disabled={quantity >= product.stock}
+                  className="px-4 py-4 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+
               <button
-                onClick={decreaseQty}
-                disabled={quantity <= 1}
-                className="px-4 py-4 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
-                aria-label="Decrease quantity"
+                onClick={handleToggleWishlist}
+                aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                className={`
+                  flex h-14 w-14 shrink-0 items-center justify-center rounded-full border transition sm:hidden
+                  ${
+                    inWishlist
+                      ? "border-rust bg-rust text-white"
+                      : "border-brass/30 text-ink/60 hover:border-rust hover:text-rust"
+                  }
+                `}
               >
-                −
-              </button>
-
-              <span className="w-8 text-center text-base font-medium">
-                {quantity}
-              </span>
-
-              <button
-                onClick={increaseQty}
-                disabled={quantity >= product.stock}
-                className="px-4 py-4 text-lg text-ink/60 hover:text-rust disabled:opacity-30"
-                aria-label="Increase quantity"
-              >
-                +
+                {inWishlist ? "♥" : "♡"}
               </button>
             </div>
 
             <button
               onClick={handleAddToCart}
               disabled={product.stock === 0 || addingToCart}
-              className="flex-1 rounded-full bg-rust px-8 py-4 text-base font-bold text-cream transition-colors hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-40"
+              className="w-full whitespace-nowrap rounded-full bg-rust px-8 py-4 text-base font-bold text-cream transition-colors hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-40 sm:flex-1"
             >
               {addingToCart ? "Adding..." : "Add to Bag"}
             </button>
@@ -372,7 +409,7 @@ export default function ProductDetailsPage() {
               onClick={handleToggleWishlist}
               aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
               className={`
-                flex h-14 w-14 shrink-0 items-center justify-center rounded-full border transition
+                hidden h-14 w-14 shrink-0 items-center justify-center rounded-full border transition sm:flex
                 ${
                   inWishlist
                     ? "border-rust bg-rust text-white"
@@ -392,6 +429,9 @@ export default function ProductDetailsPage() {
           )}
 
         </section>
+      </div>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <ReviewsSection slug={params.slug} />
       </div>
     </main>
   );

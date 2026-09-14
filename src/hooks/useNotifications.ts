@@ -5,6 +5,7 @@ import { createPusherClient } from "@/lib/pusher-client";
 import { CHANNELS, EVENTS } from "@/lib/pusherChannels";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { requestPushToken } from "@/lib/firebase-client";
 
 export interface AppNotification {
   _id: string;
@@ -21,6 +22,9 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [trackedUserId, setTrackedUserId] = useState<string | null>(null);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
 
   // Reset local state when the logged-in user changes (including logout).
   // This runs during render, not in an effect, so it's not a same-tick
@@ -30,6 +34,36 @@ export function useNotifications() {
     setNotifications([]);
     setUnreadCount(0);
   }
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the browser's current permission state on mount, not available during SSR
+      setPushEnabled(Notification.permission === "granted");
+    }
+  }, []);
+
+  const enablePush = useCallback(async () => {
+    setPushLoading(true);
+    setPushError(null);
+    try {
+      const token = await requestPushToken();
+      if (!token) {
+        setPushError("Push permission was declined or isn't supported here.");
+        return;
+      }
+      await fetch(`${API_URL}/api/notifications/fcm-token`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      setPushEnabled(true);
+    } catch {
+      setPushError("Couldn't enable push notifications on this device.");
+    } finally {
+      setPushLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -80,5 +114,14 @@ export function useNotifications() {
     await fetch(`${API_URL}/api/notifications/read-all`, { method: "PUT", credentials: "include" });
   }, []);
 
-  return { notifications, unreadCount, markRead, markAllRead };
+  return {
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    pushEnabled,
+    pushLoading,
+    pushError,
+    enablePush,
+  };
 }

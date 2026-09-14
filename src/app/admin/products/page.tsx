@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus, X } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Package } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Product, Category } from "@/types";
 import { Spinner } from "@/components/ui/LoadingState";
 import SelectDropdown from "@/components/ui/SelectDropdown";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 const emptyForm = {
   name: "", description: "", price: "", discountPrice: "",
@@ -123,12 +124,18 @@ export default function AdminProductsPage() {
 
   return (
     <div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-semibold text-ink">Products</h2>
-        <button onClick={openCreate} className="flex w-fit items-center gap-2 rounded-full bg-rust px-5 py-2 text-sm font-medium text-white hover:bg-rust-dark">
+      <AdminPageHeader
+        icon={Package}
+        title="Products"
+        description="Manage your store's catalog"
+      >
+        <button
+          onClick={openCreate}
+          className="flex w-fit items-center gap-2 rounded-full bg-rust px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-rust-dark"
+        >
           <Plus size={16} /> New Product
         </button>
-      </div>
+      </AdminPageHeader>
 
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border border-brass/30 bg-white p-6">

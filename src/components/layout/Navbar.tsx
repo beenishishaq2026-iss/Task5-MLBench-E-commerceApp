@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Menu,
@@ -23,6 +23,7 @@ import { API_URL } from "@/lib/api";
 import { Category } from "@/types";
 import SearchOverlay from "@/components/layout/SearchOverlay";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import ProfileMenu from "@/components/layout/ProfileMenu";
 import { getCategoryIcon } from "@/utils/categoryIcons";
 
 const navLinks = [
@@ -78,6 +79,8 @@ export default function Navbar() {
     router.push("/");
   };
 
+  const isAdmin = user?.role === "admin";
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-brass/30 bg-cream/90 backdrop-blur-sm">
@@ -90,6 +93,7 @@ export default function Navbar() {
         </Link>
 
         {/* centered nav links */}
+        {!isAdmin && (
         <ul className="hidden items-center justify-center gap-8 md:flex">
           <li
             className="relative"
@@ -167,33 +171,13 @@ export default function Navbar() {
             );
           })}
         </ul>
+        )}
+        {isAdmin && <div />}
 
         <div className="flex items-center gap-5 justify-self-end">
           <div className="hidden items-center gap-5 md:flex">
             {!loading && user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="flex h-6 items-center gap-2 text-sm font-medium leading-none text-ink/80 hover:text-rust"
-                >
-                  <User size={20} className="shrink-0" />
-                  <span>{user.name.split(" ")[0]}</span>
-                </Link>
-                {user.role === "admin" && (
-                  <Link
-                    href="/admin"
-                    className="flex h-6 items-center rounded-full border border-rust px-3 text-sm font-medium leading-none text-rust hover:bg-rust hover:text-white"
-                  >
-                    Admin
-                  </Link>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="flex h-6 items-center text-sm font-medium leading-none text-ink/80 hover:text-rust"
-                >
-                  Log out
-                </button>
-              </>
+              <ProfileMenu />
             ) : (
               <>
                 <Link
@@ -204,72 +188,80 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="flex h-6 items-center rounded-full bg-ink px-4 text-sm font-medium leading-none text-cream transition-colors hover:bg-rust"
+                  className="flex h-6 items-center rounded-full bg-rust px-4 text-sm font-medium leading-none text-cream transition-colors hover:bg-rust-dark"
                 >
                   Sign up
                 </Link>
               </>
             )}
-            {!loading && user && (
-              <div className="flex h-6 w-6 items-center justify-center">
-                <NotificationBell />
-              </div>
+            {!isAdmin && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSearchOverlayOpen((v) => !v)}
+                  aria-label="Search"
+                  className={`flex h-6 w-6 items-center justify-center transition-colors ${
+                    searchOverlayOpen ? "text-rust" : "text-ink/80 hover:text-rust"
+                  }`}
+                >
+                  <Search size={20} />
+                </button>
+                {!loading && user && (
+                  <div className="flex h-6 w-6 items-center justify-center">
+                    <NotificationBell />
+                  </div>
+                )}
+                <Link
+                  href="/wishlist"
+                  aria-label="Wishlist"
+                  className="relative flex h-6 w-6 items-center justify-center text-ink/80 hover:text-rust"
+                >
+                  <Heart size={20} />
+                  {wishlistProducts.length > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-semibold text-white">
+                      {wishlistProducts.length}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  href="/cart"
+                  aria-label="Cart"
+                  className="relative flex h-6 w-6 items-center justify-center text-ink/80 hover:text-rust"
+                >
+                  <ShoppingBag size={20} />
+                  {itemCount > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-semibold text-white">
+                      {itemCount}
+                    </span>
+                  )}
+                </Link>
+              </>
             )}
-            <Link
-              href="/wishlist"
-              aria-label="Wishlist"
-              className="relative flex h-6 w-6 items-center justify-center text-ink/80 hover:text-rust"
-            >
-              <Heart size={20} />
-              {wishlistProducts.length > 0 && (
-                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-semibold text-white">
-                  {wishlistProducts.length}
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/cart"
-              aria-label="Cart"
-              className="relative flex h-6 w-6 items-center justify-center text-ink/80 hover:text-rust"
-            >
-              <ShoppingBag size={20} />
-              {itemCount > 0 && (
-                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-semibold text-white">
-                  {itemCount}
-                </span>
-              )}
-            </Link>
-            <button
-              type="button"
-              onClick={() => setSearchOverlayOpen((v) => !v)}
-              aria-label="Search"
-              className={`flex h-6 w-6 items-center justify-center transition-colors ${
-                searchOverlayOpen ? "text-rust" : "text-ink/80 hover:text-rust"
-              }`}
-            >
-              <Search size={20} />
-            </button>
           </div>
 
           {/* mobile: search + notification bell sit next to the hamburger toggle */}
           <div className="flex items-center gap-4 md:hidden">
-            <button
-              type="button"
-              onClick={() => {
-                setSearchOverlayOpen((v) => !v);
-                setOpen(false);
-              }}
-              aria-label="Search"
-              className={`flex h-6 w-6 items-center justify-center transition-colors ${
-                searchOverlayOpen ? "text-rust" : "text-ink/80 hover:text-rust"
-              }`}
-            >
-              <Search size={20} />
-            </button>
-            {!loading && user && (
-              <div className="flex h-6 w-6 items-center justify-center">
-                <NotificationBell />
-              </div>
+            {!isAdmin && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchOverlayOpen((v) => !v);
+                    setOpen(false);
+                  }}
+                  aria-label="Search"
+                  className={`flex h-6 w-6 items-center justify-center transition-colors ${
+                    searchOverlayOpen ? "text-rust" : "text-ink/80 hover:text-rust"
+                  }`}
+                >
+                  <Search size={20} />
+                </button>
+                {!loading && user && (
+                  <div className="flex h-6 w-6 items-center justify-center">
+                    <NotificationBell />
+                  </div>
+                )}
+              </>
             )}
             <button
               onClick={() => {
@@ -285,11 +277,13 @@ export default function Navbar() {
         </div>
 
         {searchOverlayOpen && (
-          <SearchOverlay
-            open={searchOverlayOpen}
-            onClose={() => setSearchOverlayOpen(false)}
-            categories={categories}
-          />
+          <Suspense fallback={null}>
+            <SearchOverlay
+              open={searchOverlayOpen}
+              onClose={() => setSearchOverlayOpen(false)}
+              categories={categories}
+            />
+          </Suspense>
         )}
       </nav>
       </header>
@@ -321,6 +315,7 @@ export default function Navbar() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-5">
+              {!isAdmin && (
               <ul className="flex flex-col divide-y divide-brass/10">
                 <li>
                   <button
@@ -380,10 +375,13 @@ export default function Navbar() {
                   );
                 })}
               </ul>
+              )}
 
-              <div className="my-4 border-t border-brass/20" />
+              {!isAdmin && <div className="my-4 border-t border-brass/20" />}
 
               <ul className="flex flex-col divide-y divide-brass/10">
+                {!isAdmin && (
+                <>
                 <li>
                   <Link
                     href="/wishlist"
@@ -418,6 +416,8 @@ export default function Navbar() {
                     )}
                   </Link>
                 </li>
+                </>
+                )}
 
                 {!loading && user && (
                   <>

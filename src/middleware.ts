@@ -31,12 +31,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  const token = request.cookies.get("token")?.value;
+
   const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
   if (!isProtected) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("token");
   if (!token) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
@@ -45,7 +46,7 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/admin")) {
     const meRes = await fetch(new URL("/api/auth/me", request.url), {
-      headers: { cookie: `token=${token.value}` },
+      headers: { cookie: `token=${token}` },
     });
 
     if (!meRes.ok) {
@@ -65,6 +66,16 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
+    "/products/:path*",
+    "/categories/:path*",
+    "/about",
+    "/contact",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
     "/profile/:path*",
     "/cart/:path*",
     "/wishlist/:path*",

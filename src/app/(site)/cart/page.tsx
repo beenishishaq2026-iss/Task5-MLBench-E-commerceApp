@@ -7,14 +7,24 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import LoadingState from "@/components/ui/LoadingState";
-import { ShoppingBag, ArrowRight } from "lucide-react";
+import { ShoppingBag, ArrowRight, Trash2 } from "lucide-react";
 
 export default function CartPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const { items, loading, updateQuantity, removeFromCart, subtotal } = useCart();
+  const { items, loading, updateQuantity, removeFromCart, clearCart, subtotal } = useCart();
   const [itemErrors, setItemErrors] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [clearing, setClearing] = useState(false);
+
+  async function handleClearCart() {
+    setClearing(true);
+    try {
+      await clearCart();
+    } finally {
+      setClearing(false);
+    }
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -99,9 +109,20 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl italic text-ink sm:text-4xl">
-        Your Cart
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="font-[family-name:var(--font-display)] text-3xl italic text-ink sm:text-4xl">
+          Your Cart
+        </h1>
+        <button
+          type="button"
+          onClick={handleClearCart}
+          disabled={clearing}
+          className="flex items-center gap-2 rounded-full bg-rust px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Trash2 size={15} />
+          {clearing ? "Clearing..." : "Clear Cart"}
+        </button>
+      </div>
 
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
         {/* cart items */}
