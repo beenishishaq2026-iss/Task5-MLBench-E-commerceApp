@@ -25,7 +25,7 @@ export default function OrderStatusDonut({ counts }: { counts: OrderStatusCounts
   let offsetSoFar = 0;
 
   return (
-    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-8">
+    <div className="flex w-full min-w-0 flex-col items-center gap-5 sm:flex-row sm:items-center sm:gap-8">
       <div className="relative w-full max-w-[160px] shrink-0 sm:w-40">
         <svg viewBox="0 0 160 160" className="h-auto w-full">
           <g transform="rotate(-90 80 80)">
@@ -73,17 +73,17 @@ export default function OrderStatusDonut({ counts }: { counts: OrderStatusCounts
         </div>
       </div>
 
-      <div className="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:w-auto sm:grid-cols-1">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-x-6 gap-y-2 sm:flex-1">
         {SEGMENTS.map((s) => (
-          <div key={s.key} className="flex items-center justify-between gap-6 text-sm">
-            <span className="flex items-center gap-2 text-ink/70">
+          <div key={s.key} className="flex items-center justify-between gap-3 text-sm">
+            <span className="flex min-w-0 items-center gap-2 truncate text-ink/70">
               <span
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: s.color }}
               />
-              {s.label}
+              <span className="truncate">{s.label}</span>
             </span>
-            <span className="font-medium text-ink">{counts[s.key] || 0}</span>
+            <span className="shrink-0 font-medium text-ink">{counts[s.key] || 0}</span>
           </div>
         ))}
       </div>

@@ -4,6 +4,7 @@ import { Truck, RotateCcw, ShieldCheck } from "lucide-react";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import NewsletterForm from "@/components/layout/NewsletterForm";
 import ProductCard from "@/components/products/ProductCard";
+import CountdownTimer from "@/components/home/CountdownTimer";
 import { SERVER_API_URL } from "@/lib/api";
 import { ProductListResponse, Category } from "@/types";
 
@@ -174,16 +175,22 @@ export default async function Home() {
       <section id="deals" className="bg-white py-16">
         <div className="mx-auto max-w-7xl px-6">
           <div className="rounded-3xl border border-brass/20 bg-cream px-6 py-10 md:px-12 md:py-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rust">
-              Limited Time Offers
-            </p>
-            <h2 className="animate-fade-up mt-3 font-[family-name:var(--font-display)] text-4xl font-bold italic text-ink md:text-5xl">
-              Featured Collection
-            </h2>
-            <p className="mt-3 max-w-xl text-sm text-ink/60">
-              Handpicked favorites and seasonal deals, pulled live from our
-              catalog.
-            </p>
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rust">
+                  Limited Time Offers
+                </p>
+                <h2 className="animate-fade-up mt-3 font-[family-name:var(--font-display)] text-4xl font-bold italic text-ink md:text-5xl">
+                  Featured Collection
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-ink/60">
+                  Handpicked favorites and seasonal deals, pulled live from our
+                  catalog.
+                </p>
+              </div>
+
+              <CountdownTimer />
+            </div>
 
             {featuredProducts.length > 0 ? (
               <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

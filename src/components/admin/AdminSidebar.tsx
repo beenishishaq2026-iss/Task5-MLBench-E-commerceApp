@@ -8,8 +8,10 @@ import {
   FolderOpen,
   ClipboardList,
   Users,
+  Star,
   Settings,
   LogOut,
+  Megaphone,
   X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -19,7 +21,9 @@ const NAV_ITEMS = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: FolderOpen },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList },
+  { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
 ];
 
 export default function AdminSidebar({
@@ -37,10 +41,10 @@ export default function AdminSidebar({
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      <div className="flex items-center justify-between border-b border-brass/20 px-5 py-5">
+    <div className="flex h-full flex-col bg-cream">
+      <div className="flex items-center justify-between border-b border-brass/20 px-5 py-3">
         <Link href="/admin" className="flex items-center gap-2" onClick={onNavigate}>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rust text-sm font-semibold text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-rust text-sm font-semibold text-white">
             A
           </span>
           <span className="font-[family-name:var(--font-display)] text-lg italic text-ink">
@@ -49,7 +53,7 @@ export default function AdminSidebar({
         </Link>
         <button
           onClick={onNavigate}
-          className="rounded-lg p-1.5 text-ink/50 hover:bg-cream lg:hidden"
+          className="rounded-lg p-1.5 text-ink/50 hover:bg-white lg:hidden"
           aria-label="Close menu"
         >
           <X size={18} />
@@ -75,7 +79,7 @@ export default function AdminSidebar({
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                     active
                       ? "bg-rust text-white shadow-sm"
-                      : "text-ink/65 hover:bg-cream"
+                      : "text-ink/65 hover:bg-rust hover:text-white"
                   }`}
                 >
                   <Icon size={17} />
@@ -94,7 +98,7 @@ export default function AdminSidebar({
             <Link
               href="/profile"
               onClick={onNavigate}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink/65 transition-colors hover:bg-cream"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink/65 transition-colors hover:bg-rust hover:text-white"
             >
               <Settings size={17} />
               Settings
@@ -103,7 +107,7 @@ export default function AdminSidebar({
           <li>
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-ink/65 transition-colors hover:bg-cream"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-ink/65 transition-colors hover:bg-rust hover:text-white"
             >
               <LogOut size={17} />
               Log out

@@ -15,6 +15,7 @@ export default function ReviewsSection({ slug }: { slug: string }) {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -53,59 +54,116 @@ export default function ReviewsSection({ slug }: { slug: string }) {
       }
       setComment("");
       setRating(5);
+      setShowForm(false);
       await fetchReviews();
     } finally {
       setSubmitting(false);
     }
   }
 
+  const canReview = !!user && user.role !== "admin";
+
   return (
     <div className="mt-12 border-t border-brass/20 pt-8">
-      <div className="flex items-center gap-3">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl italic text-ink">Reviews</h2>
-        <div className="flex items-center gap-1">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star
-              key={i}
-              size={14}
-              className={i < Math.round(ratingsAverage) ? "fill-brass text-brass" : "text-brass/30"}
-            />
-          ))}
-        </div>
-        <span className="text-sm text-ink/60">
-          {ratingsAverage.toFixed(1)} ({numReviews})
-        </span>
-      </div>
+      <h2 className="font-[family-name:var(--font-display)] text-2xl italic text-ink">
+        Customer Reviews
+      </h2>
 
-      {user && user.role !== "admin" && (
-        <form onSubmit={handleSubmit} className="mt-6 max-w-xl">
+      {numReviews > 0 && (
+        <div className="mt-2 flex items-center gap-3">
           <div className="flex items-center gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
-              <button key={i} type="button" onClick={() => setRating(i + 1)} aria-label={`Rate ${i + 1} stars`}>
-                <Star size={20} className={i < rating ? "fill-brass text-brass" : "text-brass/30"} />
-              </button>
+              <Star
+                key={i}
+                size={14}
+                className={i < Math.round(ratingsAverage) ? "fill-brass text-brass" : "text-brass/30"}
+              />
             ))}
           </div>
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Share your thoughts on this product..."
-            className="mt-3 w-full rounded-xl border border-brass/20 p-3 text-sm text-ink placeholder:text-ink/40 focus:border-rust focus:outline-none"
-            rows={3}
-          />
-          {error && <p className="mt-2 text-sm text-rust">{error}</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-3 rounded-xl bg-rust px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {submitting ? "Submitting..." : "Submit review"}
-          </button>
-        </form>
+          <span className="text-sm text-ink/60">
+            {ratingsAverage.toFixed(1)} ({numReviews})
+          </span>
+        </div>
       )}
 
+      {/* Write-a-review + summary cards, styled like the rest of the app */}
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-brass/20 bg-white/60 p-6">
+          <h3 className="text-lg font-semibold text-ink">Write a Review</h3>
+          <p className="mt-2 text-sm leading-6 text-ink/60">
+            Share your thoughts, sizing feedback, and product rating with other shoppers.
+          </p>
+
+          {canReview ? (
+            !showForm ? (
+              <button
+                type="button"
+                onClick={() => setShowForm(true)}
+                className="mt-5 rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-rust"
+              >
+                Write a Review
+              </button>
+            ) : (
+              <form onSubmit={handleSubmit} className="mt-5">
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setRating(i + 1)}
+                      aria-label={`Rate ${i + 1} stars`}
+                    >
+                      <Star size={20} className={i < rating ? "fill-brass text-brass" : "text-brass/30"} />
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Share your thoughts on this product..."
+                  className="mt-3 w-full rounded-xl border border-brass/20 bg-white p-3 text-sm text-ink placeholder:text-ink/40 focus:border-rust focus:outline-none"
+                  rows={3}
+                  autoFocus
+                />
+                {error && <p className="mt-2 text-sm text-rust">{error}</p>}
+                <div className="mt-3 flex items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="rounded-full bg-rust px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-rust-dark disabled:opacity-50"
+                  >
+                    {submitting ? "Submitting..." : "Submit review"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="text-sm font-medium text-ink/50 hover:text-rust"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )
+          ) : (
+            <a
+              href="/login"
+              className="mt-5 inline-block rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-cream transition-colors hover:bg-rust"
+            >
+              Log in to write a review
+            </a>
+          )}
+        </div>
+
+        {numReviews === 0 && (
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-brass/20 bg-cream/60 p-6 text-center">
+            <Star size={32} className="text-brass/40" />
+            <p className="font-semibold text-ink">No reviews yet.</p>
+            <p className="text-sm text-ink/50">Be the first to review this product!</p>
+          </div>
+        )}
+      </div>
+
       <div className="mt-8 space-y-6">
-        {reviews.length === 0 && <p className="text-sm text-ink/50">No reviews yet — be the first.</p>}
         {reviews.map((r) => {
           const reviewer = typeof r.user === "string" ? "User" : r.user.name;
           return (
@@ -128,6 +186,14 @@ export default function ReviewsSection({ slug }: { slug: string }) {
                 )}
               </div>
               <p className="mt-2 text-sm leading-6 text-ink/70">{r.comment}</p>
+              {r.adminReply && (
+                <div className="mt-3 rounded-xl bg-cream/60 border border-brass/20 p-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-rust">
+                    Reply from the shop
+                  </span>
+                  <p className="mt-1 text-sm leading-6 text-ink/70">{r.adminReply}</p>
+                </div>
+              )}
             </div>
           );
         })}

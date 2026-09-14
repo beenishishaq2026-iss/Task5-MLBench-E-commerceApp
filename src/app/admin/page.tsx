@@ -8,9 +8,11 @@ import {
   Users,
   DollarSign,
   ArrowUpRight,
+  LayoutDashboard,
 } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Spinner } from "@/components/ui/LoadingState";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import RevenueChart, { RevenuePoint } from "@/components/admin/charts/RevenueChart";
 import OrderStatusDonut, { OrderStatusCounts } from "@/components/admin/charts/OrderStatusDonut";
 
@@ -92,7 +94,6 @@ export default function AdminDashboard() {
           label: "Total Revenue",
           value: `$${stats.totalRevenue.toFixed(2)}`,
           icon: DollarSign,
-          accent: true,
         },
         { label: "Total Orders", value: stats.totalOrders, icon: ShoppingBag },
         { label: "Total Products", value: stats.totalProducts, icon: Package },
@@ -102,10 +103,11 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div>
-        <h2 className="text-xl font-semibold text-ink">Dashboard</h2>
-        <p className="text-sm text-ink/50">Overview of your store&apos;s performance</p>
-      </div>
+      <AdminPageHeader
+        icon={LayoutDashboard}
+        title="Dashboard"
+        description="Overview of your store's performance"
+      />
 
       {error && (
         <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
@@ -132,21 +134,16 @@ export default function AdminDashboard() {
               {cards.map((c) => (
                 <div
                   key={c.label}
-                  className="relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-brass/30 bg-white p-3.5 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5"
+                  className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-brass/20 bg-white p-3.5 shadow-[0_1px_3px_rgba(43,36,32,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(43,36,32,0.09)] sm:p-5"
                 >
-                  <span
-                    className={`absolute inset-y-0 left-0 w-1 ${c.accent ? "bg-orange" : "bg-rust"}`}
-                  />
                   <div className="flex min-w-0 items-start justify-between gap-2">
-                    <span className="min-w-0 truncate text-[10px] font-semibold uppercase tracking-wide text-ink/50 sm:text-[11px]">
+                    <span className="min-w-0 truncate text-[10px] font-semibold uppercase tracking-wide text-ink/45 sm:text-[11px]">
                       {c.label}
                     </span>
                     <div
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg sm:h-9 sm:w-9 ${
-                        c.accent ? "bg-orange/10" : "bg-rust/10"
-                      }`}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rust to-rust-dark text-white shadow-sm transition-transform duration-200 group-hover:scale-105 sm:h-10 sm:w-10"
                     >
-                      <c.icon size={15} className={c.accent ? "text-orange-dark" : "text-rust"} />
+                      <c.icon size={16} />
                     </div>
                   </div>
                   <p className="mt-3 truncate font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-ink sm:text-2xl lg:text-3xl">
@@ -158,8 +155,8 @@ export default function AdminDashboard() {
 
             {/* Revenue chart + order status */}
             <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <div className="rounded-2xl border border-brass/30 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5 lg:col-span-2">
-                <h3 className="font-[family-name:var(--font-display)] text-lg italic text-ink">
+              <div className="rounded-2xl border border-brass/20 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5 lg:col-span-2">
+                <h3 className="font-[family-name:var(--font-display)] text-lg font-medium italic text-ink">
                   Revenue, last 7 days
                 </h3>
                 {stats.revenueByDay.every((d) => d.total === 0) ? (
@@ -173,20 +170,20 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <div className="rounded-2xl border border-brass/30 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
-                <h3 className="font-[family-name:var(--font-display)] text-lg italic text-ink">
+              <div className="min-w-0 overflow-hidden rounded-2xl border border-brass/20 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
+                <h3 className="font-[family-name:var(--font-display)] text-lg font-medium italic text-ink">
                   Order Status
                 </h3>
-                <div className="mt-4">
+                <div className="mt-4 min-w-0">
                   <OrderStatusDonut counts={stats.orderStatusCounts} />
                 </div>
               </div>
             </div>
 
             {/* Recent orders */}
-            <div className="mt-6 rounded-2xl border border-brass/30 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
+            <div className="mt-6 rounded-2xl border border-brass/20 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
               <div className="flex items-center justify-between">
-                <h3 className="font-[family-name:var(--font-display)] text-lg italic text-ink">
+                <h3 className="font-[family-name:var(--font-display)] text-lg font-medium italic text-ink">
                   Recent Orders
                 </h3>
                 <Link
@@ -245,8 +242,8 @@ export default function AdminDashboard() {
 
             {/* Top products + Sales by category */}
             <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <div className="rounded-2xl border border-brass/30 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
-                <h3 className="font-[family-name:var(--font-display)] text-lg italic text-ink">
+              <div className="rounded-2xl border border-brass/20 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
+                <h3 className="font-[family-name:var(--font-display)] text-lg font-medium italic text-ink">
                   Top Selling Products
                 </h3>
                 {stats.topProducts.length === 0 ? (
@@ -280,8 +277,8 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <div className="rounded-2xl border border-brass/30 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
-                <h3 className="font-[family-name:var(--font-display)] text-lg italic text-ink">
+              <div className="rounded-2xl border border-brass/20 bg-white p-4 shadow-[0_1px_3px_rgba(43,36,32,0.06)] sm:p-5">
+                <h3 className="font-[family-name:var(--font-display)] text-lg font-medium italic text-ink">
                   Sales by Category
                 </h3>
                 {stats.salesByCategory.length === 0 ? (

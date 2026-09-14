@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Search, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight, Users } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Spinner } from "@/components/ui/LoadingState";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 interface AdminUserRow {
   _id: string;
@@ -64,13 +65,11 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-ink">Users</h2>
-          <p className="text-sm text-ink/50">
-            {loading ? "Loading…" : `${total} registered customer${total === 1 ? "" : "s"}`}
-          </p>
-        </div>
+      <AdminPageHeader
+        icon={Users}
+        title="Users"
+        description={loading ? "Loading…" : `${total} registered customer${total === 1 ? "" : "s"}`}
+      >
         <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-64">
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/35" />
           <input
@@ -80,7 +79,7 @@ export default function AdminUsersPage() {
             className="w-full rounded-full border border-brass/30 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-rust"
           />
         </form>
-      </div>
+      </AdminPageHeader>
 
       {error && (
         <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">

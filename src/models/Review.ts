@@ -6,6 +6,8 @@ export interface IReview extends Document {
   rating: number;
   comment: string;
   verifiedPurchase: boolean;
+  adminReply?: string;
+  repliedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +39,14 @@ const reviewSchema = new Schema<IReview>(
     verifiedPurchase: {
       type: Boolean,
       default: false,
+    },
+    adminReply: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+    repliedAt: {
+      type: Date,
     },
   },
   { timestamps: true }

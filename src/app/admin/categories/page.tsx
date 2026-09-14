@@ -1,202 +1,284 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { FolderOpen, SearchX, TriangleAlert, X } from "lucide-react";
+import { Pencil, Trash2, Plus, X, FolderOpen, ImageIcon } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { Category } from "@/types";
-import SearchBar from "@/components/products/SearchBar";
-import GridViewToggle, { GRID_COLUMN_CLASSES } from "@/components/products/GridViewToggle";
 import { Spinner } from "@/components/ui/LoadingState";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
-export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
+interface AdminCategory extends Category {
+  productCount?: number;
+}
+
+const emptyForm = {
+  name: "",
+  description: "",
+  isActive: true,
+};
+
+export default function AdminCategoriesPage() {
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [searchText, setSearchText] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [gridCols, setGridCols] = useState(3);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const debouncedSearchText = useDebouncedValue(searchText, 350);
-
-  const [prevDebounced, setPrevDebounced] = useState(debouncedSearchText);
-  if (debouncedSearchText !== prevDebounced) {
-    setPrevDebounced(debouncedSearchText);
-    setActiveSearch(debouncedSearchText);
+  async function loadCategories() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_URL}/api/categories?all=true`, { credentials: "include" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to load categories");
+      setCategories(data.categories || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch(`${API_URL}/api/categories`);
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.message || "Failed to load categories");
-        }
-
-        setCategories(data.categories);
-      } catch (err) {
-        if (err instanceof Error) {
-          setErrorMsg(err.message);
-        } else {
-          setErrorMsg("Something went wrong");
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCategories();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadCategories();
   }, []);
 
-  const filteredCategories = useMemo(() => {
-    if (!activeSearch) return categories;
-    const q = activeSearch.trim().toLowerCase();
-    return categories.filter((cat) => cat.name.toLowerCase().includes(q));
-  }, [categories, activeSearch]);
+  function openCreate() {
+    setEditingId(null);
+    setForm(emptyForm);
+    setImageFile(null);
+    setError("");
+    setShowForm(true);
+  }
 
-  function handleClearSearch() {
-    setSearchText("");
-    setActiveSearch("");
+  function openEdit(c: AdminCategory) {
+    setEditingId(c._id);
+    setForm({
+      name: c.name,
+      description: c.description || "",
+      isActive: c.isActive,
+    });
+    setImageFile(null);
+    setError("");
+    setShowForm(true);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!form.name.trim()) {
+      setError("Category name is required");
+      return;
+    }
+
+    setSaving(true);
+
+    const fd = new FormData();
+    fd.append("name", form.name);
+    fd.append("description", form.description);
+    fd.append("isActive", String(form.isActive));
+    if (imageFile) fd.append("image", imageFile);
+
+    try {
+      const url = editingId ? `${API_URL}/api/categories/${editingId}` : `${API_URL}/api/categories`;
+      const res = await fetch(url, {
+        method: editingId ? "PUT" : "POST",
+        credentials: "include",
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to save category");
+      setShowForm(false);
+      loadCategories();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this category? This cannot be undone.")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/categories/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete category");
+      loadCategories();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Something went wrong");
+    }
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
-      <div className="divider-signature mb-4">
-        <span className="dot" />
-      </div>
+    <div>
+      <AdminPageHeader
+        icon={FolderOpen}
+        title="Categories"
+        description="Organize your product catalog"
+      >
+        <button
+          onClick={openCreate}
+          className="flex w-fit items-center gap-2 rounded-full bg-rust px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-rust-dark"
+        >
+          <Plus size={16} /> New Category
+        </button>
+      </AdminPageHeader>
 
-      <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rust">
-            Browse
-          </p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl italic text-ink">
-            Categories
-          </h1>
-        </div>
-
-        <SearchBar
-          value={searchText}
-          onChange={setSearchText}
-          onSubmit={setActiveSearch}
-          onClear={handleClearSearch}
-          placeholder="Search categories..."
-          className="md:max-w-sm"
-        />
-      </div>
-
-      {activeSearch && (
-        <div className="mb-6 flex items-center gap-2">
-          <span className="inline-flex items-center gap-2 rounded-full bg-brass/10 px-4 py-1.5 text-sm font-medium text-ink">
-            Search: {activeSearch}
-            <button
-              onClick={handleClearSearch}
-              aria-label="Clear search filter"
-              className="text-ink/50 hover:text-rust"
-            >
-              <X size={14} />
-            </button>
-          </span>
+      {error && !showForm && (
+        <div className="mt-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <span>⚠️ {error}</span>
+          <button
+            onClick={loadCategories}
+            className="shrink-0 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+          >
+            Retry
+          </button>
         </div>
       )}
 
-      {!loading && !errorMsg && categories.length > 0 && (
-        <>
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-ink/60">
-              {filteredCategories.length} of {categories.length} categories
-            </p>
-            <GridViewToggle value={gridCols} onChange={setGridCols} />
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="mt-6 space-y-4 rounded-2xl border border-brass/20 bg-white p-6 shadow-[0_1px_3px_rgba(43,36,32,0.06)]"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-ink">{editingId ? "Edit Category" : "New Category"}</h3>
+            <button type="button" onClick={() => setShowForm(false)}>
+              <X size={18} className="text-ink/50" />
+            </button>
           </div>
 
-          {/* light divider between the count row and the category grid */}
-          <div className="mb-6 h-px w-full bg-brass/20" />
-        </>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <div>
+            <label className="block text-sm font-medium text-ink/70">Name</label>
+            <input
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-brass/30 px-3 py-2 text-sm focus:border-rust focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink/70">Description</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={3}
+              className="mt-1 w-full rounded-lg border border-brass/30 px-3 py-2 text-sm focus:border-rust focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink/70">
+              Image {editingId && "(leave empty to keep current image)"}
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              className="mt-1 w-full text-sm"
+            />
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-ink/70">
+            <input
+              type="checkbox"
+              checked={form.isActive}
+              onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+            />
+            Active (visible to customers)
+          </label>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-full bg-rust px-6 py-2 text-sm font-medium text-white hover:bg-rust-dark disabled:opacity-60"
+          >
+            {saving ? "Saving..." : editingId ? "Update Category" : "Create Category"}
+          </button>
+        </form>
       )}
 
-      {loading && (
-        <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-brass/20 bg-white text-center">
-          <Spinner />
-          <p className="text-sm text-ink/50">Loading categories...</p>
-        </div>
-      )}
-
-      {errorMsg && (
-        <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-rust/20 bg-white px-6 text-center">
-          <TriangleAlert size={28} className="text-rust" />
-          <p className="text-sm font-medium text-ink">Something went wrong</p>
-          <p className="max-w-xs text-sm text-ink/50">{errorMsg}</p>
-        </div>
-      )}
-
-      {!loading && !errorMsg && categories.length === 0 && (
-        <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-brass/30 bg-white px-6 text-center">
-          <FolderOpen size={28} className="text-ink/30" />
-          <p className="text-sm font-medium text-ink">No categories yet</p>
-          <p className="max-w-xs text-sm text-ink/50">
-            Check back soon — new categories are on the way.
-          </p>
-        </div>
-      )}
-
-      {!loading && !errorMsg && categories.length > 0 && filteredCategories.length === 0 && (
-        <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-brass/30 bg-white px-6 text-center">
-          <SearchX size={28} className="text-ink/30" />
-          <p className="text-sm font-medium text-ink">No categories match your search</p>
-          <p className="max-w-xs text-sm text-ink/50">
-            Try a different name, or clear the search to see everything.
-          </p>
-        </div>
-      )}
-
-      {!loading && !errorMsg && filteredCategories.length > 0 && (
-        <div className={`grid gap-6 ${GRID_COLUMN_CLASSES[gridCols]}`}>
-          {filteredCategories.map((cat) => (
-            <Link
-              key={cat._id}
-              href={`/categories/${cat.slug}`}
-              className="group overflow-hidden rounded-2xl border border-brass/20 bg-white transition-shadow hover:shadow-lg"
-            >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream">
-                {cat.image.url ? (
-                  <Image
-                    src={cat.image.url}
-                    alt={cat.name}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-sm text-ink/30">
-                    No image
-                  </div>
-                )}
-              </div>
-
-                           <div className="p-5">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-                  <h3 className="font-[family-name:var(--font-display)] text-lg italic text-ink sm:text-xl">
-                    {cat.name}
-                  </h3>
-                  <span className="shrink-0 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-rust">
-                    {cat.productCount ?? 0}{" "}
-                    {cat.productCount === 1 ? "Product" : "Products"}
-                  </span>
-                </div>
-                {cat.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-ink/60">
-                    {cat.description}
-                  </p>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <div className="relative mt-6 overflow-hidden rounded-2xl border border-brass/20 bg-white shadow-[0_1px_3px_rgba(43,36,32,0.06)]">
+        {loading ? (
+          <div className="flex items-center justify-center p-10">
+            <Spinner />
+          </div>
+        ) : categories.length === 0 ? (
+          <p className="p-6 text-sm text-ink/60">No categories yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="border-b border-brass/20 bg-cream/50 text-left text-ink/60">
+                <tr>
+                  <th className="px-4 py-3">Category</th>
+                  <th className="px-4 py-3">Products</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((c) => (
+                  <tr key={c._id} className="border-b border-brass/10 last:border-0">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-cream">
+                          {c.image?.url ? (
+                            <Image
+                              src={c.image.url}
+                              alt={c.name}
+                              width={40}
+                              height={40}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <ImageIcon size={16} className="text-ink/25" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-ink">{c.name}</p>
+                          {c.description && (
+                            <p className="truncate text-xs text-ink/45">{c.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-ink/70">{c.productCount ?? 0}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs ${
+                          c.isActive ? "bg-green-100 text-green-700" : "bg-ink/10 text-ink/50"
+                        }`}
+                      >
+                        {c.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => openEdit(c)} className="mr-3 text-ink/60 hover:text-rust">
+                        <Pencil size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(c._id)} className="text-ink/60 hover:text-red-600">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

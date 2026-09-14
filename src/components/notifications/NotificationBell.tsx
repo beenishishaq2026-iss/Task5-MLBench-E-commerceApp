@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, Package, Megaphone, Sparkles, X } from "lucide-react";
+import { Bell, Package, Megaphone, Sparkles, Tag, Star, BellRing, X } from "lucide-react";
 import Link from "next/link";
-import { useNotifications, AppNotification } from "@/hooks/useNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
 
-const TYPE_ICON: Record<AppNotification["type"], typeof Package> = {
+const TYPE_ICON: Record<string, typeof Package> = {
   "order-status": Package,
   "new-order": Sparkles,
+  "new-review": Star,
+  "review-reply": Star,
   promo: Megaphone,
+  sale: Tag,
+  announcement: Megaphone,
 };
 
 function timeAgo(dateString: string) {
@@ -31,7 +35,16 @@ function timeAgo(dateString: string) {
 }
 
 export default function NotificationBell() {
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    pushEnabled,
+    pushLoading,
+    pushError,
+    enablePush,
+  } = useNotifications();
   const [open, setOpen] = useState(false);
   const [hovering, setHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,14 +73,7 @@ export default function NotificationBell() {
 
   function handleToggle() {
     setHovering(false);
-    setOpen((v) => {
-      const next = !v;
-      // opening the panel clears the unread badge, like a real inbox
-      if (next && unreadCount > 0) {
-        markAllRead();
-      }
-      return next;
-    });
+    setOpen((v) => !v);
   }
 
   // small delay on mouse-leave so moving from the bell into the preview
@@ -114,8 +120,11 @@ export default function NotificationBell() {
               const Icon = TYPE_ICON[n.type] ?? Bell;
               return (
                 <div key={n._id} className="flex gap-2.5 px-3 py-2.5 text-sm">
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brass/15 text-rust">
+                  <span className="relative mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brass/15 text-rust">
                     <Icon size={13} />
+                    {!n.read && (
+                      <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-rust ring-2 ring-white" />
+                    )}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium text-ink">{n.title}</span>
@@ -137,21 +146,39 @@ export default function NotificationBell() {
 
       {/* full panel — opens on click, stays open until dismissed */}
       {open && (
-        <div className="absolute right-0 z-50 mt-3 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-brass/20 bg-white shadow-xl">
+        <div className="absolute right-0 z-50 mt-3 w-[23rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-brass/20 bg-white shadow-xl">
           <div className="absolute -top-1.5 right-4 h-3 w-3 rotate-45 border-l border-t border-brass/20 bg-white" />
 
-          <div className="relative flex items-center justify-between border-b border-brass/20 px-4 py-3">
-            <p className="font-[family-name:var(--font-display)] text-base italic text-ink">
-              Notifications
-            </p>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close notifications"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-ink/50 hover:bg-brass/10 hover:text-rust"
-            >
-              <X size={16} />
-            </button>
+          <div className="relative flex items-center justify-between gap-2 border-b border-brass/20 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <p className="font-[family-name:var(--font-display)] text-base italic text-ink">
+                Notifications
+              </p>
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-brass/15 px-2 py-0.5 text-[11px] font-semibold text-rust">
+                  {unreadCount} new
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  className="whitespace-nowrap rounded-full border border-brass/30 px-2.5 py-1 text-xs font-medium text-ink/60 hover:border-rust hover:text-rust"
+                >
+                  Mark all read
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close notifications"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink/50 hover:bg-brass/10 hover:text-rust"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           <div className="max-h-96 overflow-y-auto">
@@ -165,35 +192,80 @@ export default function NotificationBell() {
             ) : (
               notifications.map((n) => {
                 const Icon = TYPE_ICON[n.type] ?? Bell;
-                return (
-                  <Link
-                    key={n._id}
-                    href={n.link || "#"}
-                    onClick={() => !n.read && markRead(n._id)}
-                    className={`flex gap-3 border-b border-brass/10 px-4 py-3 text-sm last:border-b-0 hover:bg-cream ${
-                      !n.read ? "bg-rust/5" : ""
-                    }`}
-                  >
-                    <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brass/15 text-rust">
-                      <Icon size={15} />
+                const content = (
+                  <>
+                    <span className="relative mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brass/15 text-rust">
+                      <Icon size={16} />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex items-start justify-between gap-2">
                         <span className="truncate font-medium text-ink">{n.title}</span>
-                        {!n.read && (
-                          <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-rust" />
-                        )}
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          <span className="whitespace-nowrap text-xs text-ink/40">
+                            {timeAgo(n.createdAt)}
+                          </span>
+                          {!n.read && (
+                            <span
+                              className="h-2 w-2 shrink-0 rounded-full bg-rust"
+                              aria-label="Unread"
+                            />
+                          )}
+                        </span>
                       </span>
                       <span className="line-clamp-2 mt-0.5 block text-ink/60">{n.message}</span>
-                      <span className="mt-1 block text-xs text-ink/40">
-                        {timeAgo(n.createdAt)}
-                      </span>
                     </span>
+                  </>
+                );
+                const rowClassName = `flex w-full gap-3 border-b border-brass/10 px-4 py-3 text-left text-sm last:border-b-0 hover:bg-cream ${
+                  !n.read ? "bg-rust/5" : ""
+                }`;
+
+                // Real link -> navigate and mark read on the way out.
+                // No link -> plain button that just clears the unread dot in place.
+                return n.link ? (
+                  <Link
+                    key={n._id}
+                    href={n.link}
+                    onClick={() => !n.read && markRead(n._id)}
+                    className={rowClassName}
+                  >
+                    {content}
                   </Link>
+                ) : (
+                  <button
+                    key={n._id}
+                    type="button"
+                    onClick={() => !n.read && markRead(n._id)}
+                    className={rowClassName}
+                  >
+                    {content}
+                  </button>
                 );
               })
             )}
           </div>
+
+          {!pushEnabled && (
+            <div className="flex items-center justify-between gap-3 border-t border-brass/20 bg-cream/60 px-4 py-3">
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                  <BellRing size={14} className="text-rust" />
+                  Never miss an update
+                </p>
+                <p className="mt-0.5 text-xs text-ink/50">
+                  {pushError ?? "Enable push notifications for instant alerts."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={enablePush}
+                disabled={pushLoading}
+                className="shrink-0 whitespace-nowrap rounded-full bg-rust px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-rust-dark disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {pushLoading ? "Enabling..." : "Enable"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
