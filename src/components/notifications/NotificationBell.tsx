@@ -113,8 +113,8 @@ export default function NotificationBell() {
 
       {/* lightweight hover peek — a couple of truncated lines, no header/chrome */}
       {showHoverPreview && (
-        <div className="absolute right-0 z-50 mt-3 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-brass/20 bg-white shadow-lg">
-          <div className="absolute -top-1.5 right-4 h-3 w-3 rotate-45 border-l border-t border-brass/20 bg-white" />
+        <div className="fixed left-4 right-4 top-16 z-50 w-auto overflow-hidden rounded-xl border border-brass/20 bg-white shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-72 sm:max-w-[calc(100vw-2rem)]">
+          <div className="hidden sm:block absolute -top-1.5 right-4 h-3 w-3 rotate-45 border-l border-t border-brass/20 bg-white" />
           <div className="relative divide-y divide-brass/10">
             {previewNotifications.map((n) => {
               const Icon = TYPE_ICON[n.type] ?? Bell;
@@ -146,8 +146,8 @@ export default function NotificationBell() {
 
       {/* full panel — opens on click, stays open until dismissed */}
       {open && (
-        <div className="absolute right-0 z-50 mt-3 w-[23rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-brass/20 bg-white shadow-xl">
-          <div className="absolute -top-1.5 right-4 h-3 w-3 rotate-45 border-l border-t border-brass/20 bg-white" />
+        <div className="fixed left-4 right-4 top-16 z-50 w-auto max-h-[calc(100vh-5rem)] overflow-hidden rounded-2xl border border-brass/20 bg-white shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-[23rem] sm:max-w-[calc(100vw-2rem)] sm:max-h-none">
+          <div className="hidden sm:block absolute -top-1.5 right-4 h-3 w-3 rotate-45 border-l border-t border-brass/20 bg-white" />
 
           <div className="relative flex items-center justify-between gap-2 border-b border-brass/20 px-4 py-3">
             <div className="flex items-center gap-2">
