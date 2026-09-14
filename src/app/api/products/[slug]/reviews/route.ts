@@ -5,6 +5,7 @@ import Review from '@/models/Review';
 import Order from '@/models/Order';
 import { getAuthUser } from '@/lib/auth';
 import { recalculateProductRating } from '@/utils/recalculateProductRating';
+import { notifyAdmins } from '@/utils/notify';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
@@ -90,6 +91,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     await recalculateProductRating(product._id);
     const populated = await review.populate('user', 'name');
+
+    await notifyAdmins({
+      type: 'new-review',
+      title: 'New product review',
+      message: `${auth.user.name} left a ${rating}-star review on "${product.name}"`,
+      link: `/admin/reviews`,
+    });
 
     return NextResponse.json({ message: 'Review added', review: populated }, { status: 201 });
   } catch (error) {

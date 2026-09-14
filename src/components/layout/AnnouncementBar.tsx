@@ -10,7 +10,7 @@ export default function AnnouncementBar() {
       </span>
       <Link
         href="/#deals"
-        className="rounded-full border-2 border-white bg-amber-50 px-5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-rust-dark shadow-sm transition-all hover:bg-white hover:shadow-md md:col-start-3 md:justify-self-end"
+        className="rounded-full border-2 border-white bg-amber-50 px-5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-rust-dark shadow-sm transition-colors hover:bg-orange-dark hover:text-white hover:shadow-md md:col-start-3 md:justify-self-end"
       >
         Shop Now
       </Link>

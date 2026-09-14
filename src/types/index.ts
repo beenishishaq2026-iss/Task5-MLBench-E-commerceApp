@@ -93,10 +93,12 @@ export interface Order {
 
 export interface Review {
   _id: string;
-  product: string;
+  product: string | { _id: string; name: string; slug: string };
   user: { _id: string; name: string } | string;
   rating: number;
   comment: string;
   verifiedPurchase: boolean;
+  adminReply?: string;
+  repliedAt?: string;
   createdAt: string;
 }

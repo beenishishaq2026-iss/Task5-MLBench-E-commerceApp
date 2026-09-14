@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <AdminGuard>
       <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream lg:flex">
         {/* Desktop sidebar */}
-        <aside className="hidden w-64 shrink-0 border-r-[3px] border-orange lg:block">
+        <aside className="hidden w-64 shrink-0 lg:block">
           <div className="fixed h-screen w-64">
             <AdminSidebar />
           </div>
@@ -37,11 +37,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className="min-w-0 flex-1">
           {/* Top bar */}
-          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b-[3px] border-orange bg-white px-4 py-3 sm:px-6">
+          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 bg-cream px-4 py-3 shadow-sm sm:px-6">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 onClick={() => setMobileOpen(true)}
-                className="shrink-0 rounded-lg p-2 text-ink hover:bg-cream lg:hidden"
+                className="shrink-0 rounded-lg p-2 text-ink hover:bg-white lg:hidden"
                 aria-label="Open admin menu"
               >
                 <Menu size={20} />
@@ -61,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </p>
                 <p className="truncate text-[11px] leading-tight text-ink/45">Administrator</p>
               </div>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rust/10 text-sm font-semibold text-rust">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rust text-sm font-semibold text-white">
                 {(user?.name || "A").charAt(0).toUpperCase()}
               </div>
             </div>

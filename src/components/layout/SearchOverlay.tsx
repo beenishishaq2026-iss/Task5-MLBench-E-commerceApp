@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, X, Sparkles, ArrowRight } from "lucide-react";
@@ -32,13 +32,42 @@ interface SearchOverlayProps {
 }
 
 export default function SearchOverlay({ open, onClose, categories }: SearchOverlayProps) {
-  const [query, setQuery] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get("search") || "";
+
+  const [query, setQuery] = useState(urlSearch);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   const debouncedQuery = useDebouncedValue(query, 350);
+
+  // reflect the debounced query into the URL's `search` param (without
+  // adding a history entry per keystroke) so the search is shareable and
+  // survives a refresh/back button, matching the /products page behaviour
+  useEffect(() => {
+    if (!open) return;
+
+    const trimmed = debouncedQuery.trim();
+    if (trimmed === urlSearch) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (trimmed) {
+      params.set("search", trimmed);
+    } else {
+      params.delete("search");
+    }
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, {
+      scroll: false,
+    });
+    // urlSearch/searchParams/pathname/router intentionally excluded: this
+    // effect should only re-run when the debounced typed value changes,
+    // not when the URL it just wrote reflects back down (that would loop).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery, open]);
 
   // close on Escape, close on click outside the panel
   useEffect(() => {

@@ -2,67 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Review from '@/models/Review';
 import { getAuthUser, forbidden } from '@/lib/auth';
-import { recalculateProductRating } from '@/utils/recalculateProductRating';
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
     const auth = await getAuthUser(request);
     if ('error' in auth) return auth.error;
-
-    const { id } = await params;
-    const review = await Review.findById(id);
-    if (!review) {
-      return NextResponse.json({ message: 'Review not found' }, { status: 404 });
-    }
-    if (review.user.toString() !== auth.user._id!.toString()) {
+    if (auth.user.role !== 'admin') {
       return forbidden();
     }
 
-    const { rating, comment } = await request.json();
-    if (rating !== undefined) {
-      if (rating < 1 || rating > 5) {
-        return NextResponse.json({ message: 'Rating must be between 1 and 5' }, { status: 400 });
-      }
-      review.rating = rating;
-    }
-    if (comment !== undefined) {
-      if (!comment.trim()) {
-        return NextResponse.json({ message: 'Comment is required' }, { status: 400 });
-      }
-      review.comment = comment.trim();
-    }
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
+    const replied = searchParams.get('replied'); // 'true' | 'false' | null
 
-    await review.save();
-    await recalculateProductRating(review.product);
+    const filter: Record<string, unknown> = {};
+    if (replied === 'true') filter.adminReply = { $exists: true, $ne: null };
+    if (replied === 'false') filter.adminReply = { $in: [null, undefined] };
 
-    return NextResponse.json({ message: 'Review updated', review }, { status: 200 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
-  }
-}
+    const total = await Review.countDocuments(filter);
+    const reviews = await Review.find(filter)
+      .populate('user', 'name email')
+      .populate('product', 'name slug')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    await connectDB();
-    const auth = await getAuthUser(request);
-    if ('error' in auth) return auth.error;
-
-    const { id } = await params;
-    const review = await Review.findById(id);
-    if (!review) {
-      return NextResponse.json({ message: 'Review not found' }, { status: 404 });
-    }
-    if (review.user.toString() !== auth.user._id!.toString() && auth.user.role !== 'admin') {
-      return forbidden();
-    }
-
-    const productId = review.product;
-    await review.deleteOne();
-    await recalculateProductRating(productId);
-
-    return NextResponse.json({ message: 'Review deleted' }, { status: 200 });
+    return NextResponse.json(
+      { reviews, total, page, totalPages: Math.ceil(total / limit) || 1 },
+      { status: 200 }
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Server error';
     return NextResponse.json({ message: 'Server error', error: message }, { status: 500 });
